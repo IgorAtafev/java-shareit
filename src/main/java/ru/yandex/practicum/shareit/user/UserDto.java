@@ -17,7 +17,7 @@ import javax.validation.constraints.Pattern;
 @ToString
 public class UserDto {
 
-    @Null(message = "Id must be null")
+    @Null(groups = ValidationOnCreate.class, message = "Id must be null")
     private Long id;
 
     @NotNull(groups = ValidationOnCreate.class, message = "Email cannot be empty")
