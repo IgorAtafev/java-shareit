@@ -1,4 +1,4 @@
-package ru.practicum.shareit;
+package ru.yandex.practicum.shareit;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;

@@ -1,4 +1,4 @@
-package ru.practicum.shareit.item.dto;
+package ru.yandex.practicum.shareit.item;
 
 /**
  * TODO Sprint add-controllers.
