@@ -49,7 +49,7 @@ public class ItemController {
             @RequestHeader("X-Sharer-User-Id") Long userId,
             @RequestBody @Valid ItemDto itemDto
     ) {
-        log.info("Request received POST /items: '{}'", itemDto);
+        log.info("Request received POST /items: '{}', userId: {}", itemDto, userId);
         return toItemDto(itemService.createItem(toItem(itemDto, userId)));
     }
 
@@ -59,7 +59,7 @@ public class ItemController {
             @PathVariable Long id,
             @RequestBody @Valid ItemDto itemDto
     ) {
-        log.info("Request received PATCH /items/{}: '{}'", id, itemDto);
+        log.info("Request received PATCH /items/{}: '{}', userId: {}", id, itemDto, userId);
         itemDto.setId(id);
         return toItemDto(itemService.updateItem(toItem(itemDto, userId)));
     }
