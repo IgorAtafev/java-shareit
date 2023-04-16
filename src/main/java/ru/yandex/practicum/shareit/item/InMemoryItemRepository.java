@@ -68,6 +68,11 @@ public class InMemoryItemRepository implements ItemRepository {
     }
 
     @Override
+    public void removeItemsByUserId(Long userId) {
+        items.remove(userId);
+    }
+
+    @Override
     public boolean itemByIdAndUserIdExists(Long id, Long userId) {
         if (!items.containsKey(userId)) {
             return false;

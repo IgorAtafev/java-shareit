@@ -2,6 +2,7 @@ package ru.yandex.practicum.shareit.user;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.shareit.item.ItemRepository;
 import ru.yandex.practicum.shareit.validator.ConflictException;
 import ru.yandex.practicum.shareit.validator.NotFoundException;
 
@@ -12,6 +13,7 @@ import java.util.Collection;
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
+    private final ItemRepository itemRepository;
 
     @Override
     public Collection<User> getUsers() {
@@ -52,6 +54,7 @@ public class UserServiceImpl implements UserService {
             throw new NotFoundException(String.format("User with id %d does not exist", id));
         }
 
+        itemRepository.removeItemsByUserId(id);
         userRepository.removeUserById(id);
     }
 }

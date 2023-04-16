@@ -47,6 +47,13 @@ public interface ItemRepository {
     Collection<Item> searchItems(String text);
 
     /**
+     * Removes user items
+     *
+     * @param userId
+     */
+    void removeItemsByUserId(Long userId);
+
+    /**
      * Checks for the existence of item by id and user id
      *
      * @param id
