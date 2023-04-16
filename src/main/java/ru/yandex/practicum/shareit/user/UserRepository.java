@@ -38,6 +38,7 @@ public interface UserRepository {
 
     /**
      * Removes a user
+     *
      * @param id
      */
     void removeUserById(Long id);
