@@ -5,53 +5,53 @@ import org.springframework.stereotype.Service;
 import ru.yandex.practicum.shareit.validator.ConflictException;
 import ru.yandex.practicum.shareit.validator.NotFoundException;
 
-import java.util.List;
+import java.util.Collection;
 
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
 
-    private final UserRepository repository;
+    private final UserRepository userRepository;
 
     @Override
-    public List<User> getUsers() {
-        return repository.getUsers();
+    public Collection<User> getUsers() {
+        return userRepository.getUsers();
     }
 
     @Override
     public User getUserById(Long id) {
-        return repository.getUserById(id).orElseThrow(
+        return userRepository.getUserById(id).orElseThrow(
                 () -> new NotFoundException(String.format("User with id %d does not exist", id)));
     }
 
     @Override
     public User createUser(User user) {
-        if (repository.userByEmailExists(user.getEmail(), user.getId())) {
+        if (userRepository.userByEmailExists(user.getEmail(), user.getId())) {
             throw new ConflictException(String.format("User with email %s exists", user.getEmail()));
         }
 
-        return repository.createUser(user);
+        return userRepository.createUser(user);
     }
 
     @Override
     public User updateUser(User user) {
-        if (!repository.userByIdExists(user.getId())) {
+        if (!userRepository.userByIdExists(user.getId())) {
             throw new NotFoundException(String.format("User with id %d does not exist", user.getId()));
         }
 
-        if (repository.userByEmailExists(user.getEmail(), user.getId())) {
+        if (userRepository.userByEmailExists(user.getEmail(), user.getId())) {
             throw new ConflictException(String.format("User with email %s exists", user.getEmail()));
         }
 
-        return repository.updateUser(user);
+        return userRepository.updateUser(user);
     }
 
     @Override
     public void removeUserById(Long id) {
-        if (!repository.userByIdExists(id)) {
+        if (!userRepository.userByIdExists(id)) {
             throw new NotFoundException(String.format("User with id %d does not exist", id));
         }
 
-        repository.removeUserById(id);
+        userRepository.removeUserById(id);
     }
 }

@@ -1,6 +1,6 @@
 package ru.yandex.practicum.shareit.user;
 
-import java.util.List;
+import java.util.Collection;
 
 public interface UserService {
 
@@ -9,7 +9,7 @@ public interface UserService {
      *
      * @return list of all users
      */
-    List<User> getUsers();
+    Collection<User> getUsers();
 
     /**
      * Returns user by id

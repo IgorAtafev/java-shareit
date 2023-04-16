@@ -26,18 +26,18 @@ import java.util.stream.Collectors;
 @Validated
 public class UserController {
 
-    private final UserService service;
+    private final UserService userService;
 
     @GetMapping
     public List<UserDto> getUsers() {
-        return service.getUsers().stream()
+        return userService.getUsers().stream()
                 .map(this::toUserDto)
                 .collect(Collectors.toList());
     }
 
     @GetMapping("/{id}")
     public UserDto getUserById(@PathVariable Long id) {
-        return toUserDto(service.getUserById(id));
+        return toUserDto(userService.getUserById(id));
     }
 
     @PostMapping
@@ -45,20 +45,20 @@ public class UserController {
     @ResponseStatus(HttpStatus.CREATED)
     public UserDto createUser(@RequestBody @Valid UserDto userDto) {
         log.info("Request received POST /users: '{}'", userDto);
-        return toUserDto(service.createUser(toUser(userDto)));
+        return toUserDto(userService.createUser(toUser(userDto)));
     }
 
     @PatchMapping("/{id}")
     public UserDto updateUserById(@PathVariable Long id, @RequestBody @Valid UserDto userDto) {
         log.info("Request received PATCH /users/{}: '{}'", id, userDto);
         userDto.setId(id);
-        return toUserDto(service.updateUser(toUser(userDto)));
+        return toUserDto(userService.updateUser(toUser(userDto)));
     }
 
     @DeleteMapping("/{id}")
     public void removeUserById(@PathVariable Long id) {
         log.info("Request received DELETE /users/{}", id);
-        service.removeUserById(id);
+        userService.removeUserById(id);
     }
 
     private UserDto toUserDto(User user) {
@@ -79,7 +79,7 @@ public class UserController {
         user.setName(userDto.getName());
 
         if (userDto.getId() != null) {
-            User oldUser = service.getUserById(userDto.getId());
+            User oldUser = userService.getUserById(userDto.getId());
 
             if (userDto.getEmail() == null) {
                 user.setEmail(oldUser.getEmail());

@@ -1,6 +1,6 @@
 package ru.yandex.practicum.shareit.user;
 
-import java.util.List;
+import java.util.Collection;
 import java.util.Optional;
 
 public interface UserRepository {
@@ -10,10 +10,10 @@ public interface UserRepository {
      *
      * @return list of all users
      */
-    List<User> getUsers();
+    Collection<User> getUsers();
 
     /**
-     * Returns a user by id
+     * Returns user by id
      *
      * @param id
      * @return user or null if there was no one
@@ -43,7 +43,7 @@ public interface UserRepository {
     void removeUserById(Long id);
 
     /**
-     * Checks for the existence of User by id
+     * Checks for the existence of user by id
      *
      * @param id
      * @return true or false
@@ -51,7 +51,7 @@ public interface UserRepository {
     boolean userByIdExists(Long id);
 
     /**
-     * Checks for the existence of User by email
+     * Checks for the existence of an email user other than the given user
      *
      * @param email
      * @param id

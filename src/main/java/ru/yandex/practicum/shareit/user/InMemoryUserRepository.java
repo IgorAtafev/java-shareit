@@ -2,9 +2,8 @@ package ru.yandex.practicum.shareit.user;
 
 import org.springframework.stereotype.Repository;
 
-import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -16,8 +15,8 @@ public class InMemoryUserRepository implements UserRepository {
     private long nextId = 0;
 
     @Override
-    public List<User> getUsers() {
-        return new ArrayList<>(users.values());
+    public Collection<User> getUsers() {
+        return users.values();
     }
 
     @Override
