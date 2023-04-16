@@ -51,4 +51,9 @@ public class ItemServiceImpl implements ItemService {
 
         return itemRepository.updateItem(item);
     }
+
+    @Override
+    public Collection<Item> searchItems(String text) {
+        return itemRepository.searchItems(text);
+    }
 }

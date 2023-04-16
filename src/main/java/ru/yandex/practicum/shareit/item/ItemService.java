@@ -40,4 +40,13 @@ public interface ItemService {
      * @return updated item
      */
     Item updateItem(Item item);
+
+    /**
+     * Returns a list of found items available for rent
+     * The search is conducted by the presence of a substring text in the title and description
+     *
+     * @param text
+     * @return list of items
+     */
+    Collection<Item> searchItems(String text);
 }

@@ -38,6 +38,15 @@ public interface ItemRepository {
     Item updateItem(Item item);
 
     /**
+     * Returns a list of found items available for rent
+     * The search is conducted by the presence of a substring text in the title and description
+     *
+     * @param text
+     * @return list of items
+     */
+    Collection<Item> searchItems(String text);
+
+    /**
      * Checks for the existence of item by id and user id
      *
      * @param id
@@ -45,5 +54,4 @@ public interface ItemRepository {
      * @return true or false
      */
     boolean itemByIdAndUserIdExists(Long id, Long userId);
-
 }

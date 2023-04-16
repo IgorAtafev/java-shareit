@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Repository
 public class InMemoryItemRepository implements ItemRepository {
@@ -25,7 +26,7 @@ public class InMemoryItemRepository implements ItemRepository {
     public Optional<Item> getItemById(Long id) {
         return items.values().stream()
                 .flatMap(Set::stream)
-                .filter(item -> Objects.equals(id, item.getId()))
+                .filter(item -> id.equals(item.getId()))
                 .findFirst();
     }
 
@@ -55,6 +56,15 @@ public class InMemoryItemRepository implements ItemRepository {
         userItems.add(item);
         items.put(userId, userItems);
         return item;
+    }
+
+    @Override
+    public Collection<Item> searchItems(String text) {
+        return items.values().stream()
+                .flatMap(Set::stream)
+                .filter(item -> item.getAvailable() && (item.getName().toLowerCase().contains(text.toLowerCase())
+                        || item.getDescription().toLowerCase().contains(text.toLowerCase())))
+                .collect(Collectors.toList());
     }
 
     @Override

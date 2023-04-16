@@ -11,12 +11,14 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import ru.yandex.practicum.shareit.user.UserService;
 import ru.yandex.practicum.shareit.validator.ValidationOnCreate;
 
 import javax.validation.Valid;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -62,6 +64,17 @@ public class ItemController {
         log.info("Request received PATCH /items/{}: '{}', userId: {}", id, itemDto, userId);
         itemDto.setId(id);
         return toItemDto(itemService.updateItem(toItem(itemDto, userId)));
+    }
+
+    @GetMapping("/search")
+    public List<ItemDto> searchItems(@RequestParam String text) {
+        if (text.isBlank()) {
+            return Collections.emptyList();
+        }
+
+        return itemService.searchItems(text).stream()
+                .map(this::toItemDto)
+                .collect(Collectors.toList());
     }
 
     private ItemDto toItemDto(Item item) {
