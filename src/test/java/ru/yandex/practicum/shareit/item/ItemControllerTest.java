@@ -44,11 +44,11 @@ class ItemControllerTest {
     private UserService userService;
 
     @InjectMocks
-    private ItemController controller;
+    private ItemController itemController;
 
     @BeforeEach
     void setMockMvc() {
-        mockMvc = MockMvcBuilders.standaloneSetup(controller)
+        mockMvc = MockMvcBuilders.standaloneSetup(itemController)
                 .setControllerAdvice(new ErrorHandler())
                 .build();
     }
@@ -135,6 +135,22 @@ class ItemControllerTest {
         mockMvc.perform(post("/items").header("X-Sharer-User-Id", userId)
                         .contentType("application/json").content(json))
                 .andExpect(status().isCreated());
+
+        verify(itemService, times(1)).createItem(item);
+    }
+
+    @ParameterizedTest
+    @ValueSource(longs = {-1L, 0L, 999L})
+    void createItem_shouldResponseWithNotFound_ifUserDoesNotExist(Long userId) throws Exception {
+        ItemDto itemDto = initItemDto();
+        Item item = initItem();
+        String json = objectMapper.writeValueAsString(itemDto);
+
+        when(itemService.createItem(item)).thenThrow(NotFoundException.class);
+
+        mockMvc.perform(post("/items").header("X-Sharer-User-Id", userId)
+                        .contentType("application/json").content(json))
+                .andExpect(status().isNotFound());
 
         verify(itemService, times(1)).createItem(item);
     }

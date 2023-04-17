@@ -42,11 +42,11 @@ class UserControllerTest {
     private UserService userService;
 
     @InjectMocks
-    private UserController controller;
+    private UserController userController;
 
     @BeforeEach
     void setMockMvc() {
-        mockMvc = MockMvcBuilders.standaloneSetup(controller)
+        mockMvc = MockMvcBuilders.standaloneSetup(userController)
                 .setControllerAdvice(new ErrorHandler())
                 .build();
     }
