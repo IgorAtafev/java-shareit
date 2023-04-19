@@ -27,17 +27,18 @@ import java.util.stream.Collectors;
 public class UserController {
 
     private final UserService userService;
+    private final UserMapper userMapper;
 
     @GetMapping
     public List<UserDto> getUsers() {
         return userService.getUsers().stream()
-                .map(this::toUserDto)
+                .map(userMapper::toUserDto)
                 .collect(Collectors.toList());
     }
 
     @GetMapping("/{id}")
     public UserDto getUserById(@PathVariable Long id) {
-        return toUserDto(userService.getUserById(id));
+        return userMapper.toUserDto(userService.getUserById(id));
     }
 
     @PostMapping
@@ -45,50 +46,19 @@ public class UserController {
     @ResponseStatus(HttpStatus.CREATED)
     public UserDto createUser(@RequestBody @Valid UserDto userDto) {
         log.info("Request received POST /users: '{}'", userDto);
-        return toUserDto(userService.createUser(toUser(userDto)));
+        return userMapper.toUserDto(userService.createUser(userMapper.toUser(userDto)));
     }
 
     @PatchMapping("/{id}")
     public UserDto updateUserById(@PathVariable Long id, @RequestBody @Valid UserDto userDto) {
         log.info("Request received PATCH /users/{}: '{}'", id, userDto);
         userDto.setId(id);
-        return toUserDto(userService.updateUser(toUser(userDto)));
+        return userMapper.toUserDto(userService.updateUser(userMapper.toUser(userDto)));
     }
 
     @DeleteMapping("/{id}")
     public void removeUserById(@PathVariable Long id) {
         log.info("Request received DELETE /users/{}", id);
         userService.removeUserById(id);
-    }
-
-    private UserDto toUserDto(User user) {
-        UserDto userDto = new UserDto();
-
-        userDto.setId(user.getId());
-        userDto.setEmail(user.getEmail());
-        userDto.setName(user.getName());
-
-        return userDto;
-    }
-
-    private User toUser(UserDto userDto) {
-        User user = new User();
-
-        user.setId(userDto.getId());
-        user.setEmail(userDto.getEmail());
-        user.setName(userDto.getName());
-
-        if (userDto.getId() != null) {
-            User oldUser = userService.getUserById(userDto.getId());
-
-            if (userDto.getEmail() == null) {
-                user.setEmail(oldUser.getEmail());
-            }
-            if (userDto.getName() == null) {
-                user.setName(oldUser.getName());
-            }
-        }
-
-        return user;
     }
 }

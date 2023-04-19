@@ -7,7 +7,9 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import javax.servlet.http.HttpServletResponse;
 import javax.validation.ConstraintViolationException;
+import java.io.IOException;
 
 @RestControllerAdvice
 @Slf4j
@@ -18,42 +20,39 @@ public class ErrorHandler {
             ConstraintViolationException.class
     })
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ErrorResponse handleValidationException(final Exception e) {
+    public void handleValidationException(final Exception e, final HttpServletResponse response) throws IOException {
         log.info(e.getMessage(), e);
-        return new ErrorResponse(e.getMessage());
+        if (e.getMessage() != null) {
+            response.getWriter().write(e.getMessage());
+        }
     }
 
     @ExceptionHandler
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public ErrorResponse handleNotFoundException(final NotFoundException e) {
+    public void handleNotFoundException(final NotFoundException e, final HttpServletResponse response)
+            throws IOException {
         log.info(e.getMessage(), e);
-        return new ErrorResponse(e.getMessage());
+        if (e.getMessage() != null) {
+            response.getWriter().write(e.getMessage());
+        }
     }
 
     @ExceptionHandler
     @ResponseStatus(HttpStatus.CONFLICT)
-    public ErrorResponse handleNotFoundException(final ConflictException e) {
+    public void handleConflictException(final ConflictException e, final HttpServletResponse response)
+            throws IOException {
         log.info(e.getMessage(), e);
-        return new ErrorResponse(e.getMessage());
+        if (e.getMessage() != null) {
+            response.getWriter().write(e.getMessage());
+        }
     }
 
     @ExceptionHandler
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public ErrorResponse handleThrowable(final Throwable e) {
+    public void handleThrowable(final Throwable e, final HttpServletResponse response) throws IOException {
         log.info(e.getMessage(), e);
-        return new ErrorResponse("An unexpected error has occurred");
-    }
-
-    private static class ErrorResponse {
-
-        private final String error;
-
-        public ErrorResponse(String error) {
-            this.error = error;
-        }
-
-        public String getError() {
-            return error;
+        if (e.getMessage() != null) {
+            response.getWriter().write(e.getMessage());
         }
     }
 }

@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
-import ru.yandex.practicum.shareit.user.UserService;
 import ru.yandex.practicum.shareit.validator.ValidationOnCreate;
 
 import javax.validation.Valid;
@@ -30,18 +29,18 @@ import java.util.stream.Collectors;
 public class ItemController {
 
     private final ItemService itemService;
-    private final UserService userService;
+    private final ItemMapper itemMapper;
 
     @GetMapping
     public List<ItemDto> getItemsByUserId(@RequestHeader("X-Sharer-User-Id") Long userId) {
         return itemService.getItemsByUserId(userId).stream()
-                .map(this::toItemDto)
+                .map(itemMapper::toItemDto)
                 .collect(Collectors.toList());
     }
 
     @GetMapping("/{id}")
     public ItemDto getItemById(@PathVariable Long id) {
-        return toItemDto(itemService.getItemById(id));
+        return itemMapper.toItemDto(itemService.getItemById(id));
     }
 
     @PostMapping
@@ -52,7 +51,7 @@ public class ItemController {
             @RequestBody @Valid ItemDto itemDto
     ) {
         log.info("Request received POST /items: '{}', userId: {}", itemDto, userId);
-        return toItemDto(itemService.createItem(toItem(itemDto, userId)));
+        return itemMapper.toItemDto(itemService.createItem(itemMapper.toItem(itemDto, userId)));
     }
 
     @PatchMapping("/{id}")
@@ -63,7 +62,7 @@ public class ItemController {
     ) {
         log.info("Request received PATCH /items/{}: '{}', userId: {}", id, itemDto, userId);
         itemDto.setId(id);
-        return toItemDto(itemService.updateItem(toItem(itemDto, userId)));
+        return itemMapper.toItemDto(itemService.updateItem(itemMapper.toItem(itemDto, userId)));
     }
 
     @GetMapping("/search")
@@ -73,45 +72,7 @@ public class ItemController {
         }
 
         return itemService.searchItems(text).stream()
-                .map(this::toItemDto)
+                .map(itemMapper::toItemDto)
                 .collect(Collectors.toList());
-    }
-
-    private ItemDto toItemDto(Item item) {
-        ItemDto itemDto = new ItemDto();
-
-        itemDto.setId(item.getId());
-        itemDto.setName(item.getName());
-        itemDto.setDescription(item.getDescription());
-        itemDto.setAvailable(item.getAvailable());
-
-        return itemDto;
-    }
-
-    private Item toItem(ItemDto itemDto, Long ownerId) {
-        Item item = new Item();
-
-        item.setId(itemDto.getId());
-        item.setName(itemDto.getName());
-        item.setDescription(itemDto.getDescription());
-        item.setAvailable(itemDto.getAvailable());
-
-        if (itemDto.getId() != null) {
-            Item oldItem = itemService.getItemById(itemDto.getId());
-
-            if (itemDto.getName() == null) {
-                item.setName(oldItem.getName());
-            }
-            if (itemDto.getDescription() == null) {
-                item.setDescription(oldItem.getDescription());
-            }
-            if (itemDto.getAvailable() == null) {
-                item.setAvailable(oldItem.getAvailable());
-            }
-        }
-
-        item.setOwner(userService.getUserById(ownerId));
-
-        return item;
     }
 }

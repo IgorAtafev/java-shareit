@@ -2,8 +2,6 @@ package ru.yandex.practicum.shareit.item;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -15,9 +13,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatExceptionOfType;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -42,7 +39,7 @@ class ItemServiceImplTest {
         when(userRepository.userByIdExists(userId)).thenReturn(true);
         when(itemRepository.getItemsByUserId(userId)).thenReturn(Collections.emptyList());
 
-        assertTrue(itemService.getItemsByUserId(userId).isEmpty());
+        assertThat(itemService.getItemsByUserId(userId).isEmpty()).isTrue();
 
         verify(userRepository, times(1)).userByIdExists(userId);
         verify(itemRepository, times(1)).getItemsByUserId(userId);
@@ -59,21 +56,20 @@ class ItemServiceImplTest {
         when(userRepository.userByIdExists(userId)).thenReturn(true);
         when(itemRepository.getItemsByUserId(userId)).thenReturn(expected);
 
-        assertEquals(expected, itemService.getItemsByUserId(userId));
+        assertThat(itemService.getItemsByUserId(userId)).isEqualTo(expected);
 
         verify(userRepository, times(1)).userByIdExists(userId);
         verify(itemRepository, times(1)).getItemsByUserId(userId);
     }
 
-    @ParameterizedTest
-    @ValueSource(longs = {-1L, 0L, 999L})
-    void getItemsByUserId_shouldThrowAnException_ifUserDoesNotExist(Long userId) {
+    @Test
+    void getItemsByUserId_shouldThrowAnException_ifUserDoesNotExist() {
+        Long userId = 1L;
+
         when(userRepository.userByIdExists(userId)).thenReturn(false);
 
-        assertThrows(
-                NotFoundException.class,
-                () -> itemService.getItemsByUserId(userId)
-        );
+        assertThatExceptionOfType(NotFoundException.class)
+                .isThrownBy(() -> itemService.getItemsByUserId(userId));
 
         verify(userRepository, times(1)).userByIdExists(userId);
         verify(itemRepository, never()).getItemsByUserId(userId);
@@ -86,20 +82,19 @@ class ItemServiceImplTest {
 
         when(itemRepository.getItemById(itemId)).thenReturn(Optional.of(item));
 
-        assertEquals(item, itemService.getItemById(itemId));
+        assertThat(itemService.getItemById(itemId)).isEqualTo(item);
 
         verify(itemRepository, times(1)).getItemById(itemId);
     }
 
-    @ParameterizedTest
-    @ValueSource(longs = {-1L, 0L, 999L})
-    void getItemById_shouldThrowAnException_ifUserDoesNotExist(Long itemId) {
+    @Test
+    void getItemById_shouldThrowAnException_ifUserDoesNotExist() {
+        Long itemId = 1L;
+
         when(itemRepository.getItemById(itemId)).thenThrow(NotFoundException.class);
 
-        assertThrows(
-                NotFoundException.class,
-                () -> itemService.getItemById(itemId)
-        );
+        assertThatExceptionOfType(NotFoundException.class)
+                .isThrownBy(() -> itemService.getItemById(itemId));
 
         verify(itemRepository, times(1)).getItemById(itemId);
     }
@@ -113,24 +108,22 @@ class ItemServiceImplTest {
         when(userRepository.userByIdExists(userId)).thenReturn(true);
         when(itemRepository.createItem(item)).thenReturn(item);
 
-        assertEquals(item, itemService.createItem(item));
+        assertThat(itemService.createItem(item)).isEqualTo(item);
 
         verify(userRepository, times(1)).userByIdExists(userId);
         verify(itemRepository, times(1)).createItem(item);
     }
 
-    @ParameterizedTest
-    @ValueSource(longs = {-1L, 0L, 999L})
-    void createItem_shouldThrowAnException_ifUserDoesNotExist(Long userId) {
+    @Test
+    void createItem_shouldThrowAnException_ifUserDoesNotExist() {
+        Long userId = 1L;
         Item item = initItem();
         item.getOwner().setId(userId);
 
         when(userRepository.userByIdExists(userId)).thenReturn(false);
 
-        assertThrows(
-                NotFoundException.class,
-                () -> itemService.createItem(item)
-        );
+        assertThatExceptionOfType(NotFoundException.class)
+                .isThrownBy(() -> itemService.createItem(item));
 
         verify(userRepository, times(1)).userByIdExists(userId);
         verify(itemRepository, never()).createItem(item);
@@ -148,16 +141,16 @@ class ItemServiceImplTest {
         when(itemRepository.itemByIdAndUserIdExists(itemId, userId)).thenReturn(true);
         when(itemRepository.updateItem(item)).thenReturn(item);
 
-        assertEquals(item, itemService.updateItem(item));
+        assertThat(itemService.updateItem(item)).isEqualTo(item);
 
         verify(userRepository, times(1)).userByIdExists(userId);
         verify(itemRepository, times(1)).itemByIdAndUserIdExists(itemId, userId);
         verify(itemRepository, times(1)).updateItem(item);
     }
 
-    @ParameterizedTest
-    @ValueSource(longs = {-1L, 0L, 999L})
-    void updateItem_shouldThrowAnException_ifUserDoesNotExist(Long userId) {
+    @Test
+    void updateItem_shouldThrowAnException_ifUserDoesNotExist() {
+        Long userId = 1L;
         Long itemId = 2L;
         Item item = initItem();
         item.getOwner().setId(userId);
@@ -165,19 +158,17 @@ class ItemServiceImplTest {
 
         when(userRepository.userByIdExists(userId)).thenReturn(false);
 
-        assertThrows(
-                NotFoundException.class,
-                () -> itemService.updateItem(item)
-        );
+        assertThatExceptionOfType(NotFoundException.class)
+                .isThrownBy(() -> itemService.updateItem(item));
 
         verify(userRepository, times(1)).userByIdExists(userId);
         verify(itemRepository, never()).itemByIdAndUserIdExists(itemId, userId);
         verify(itemRepository, never()).updateItem(item);
     }
 
-    @ParameterizedTest
-    @ValueSource(longs = {-1L, 0L, 999L})
-    void updateItem_shouldThrowAnException_ifItemDoesNotExist(Long itemId) {
+    @Test
+    void updateItem_shouldThrowAnException_ifItemDoesNotExist() {
+        Long itemId = 1L;
         Long userId = 1L;
         Item item = initItem();
         item.getOwner().setId(userId);
@@ -186,10 +177,8 @@ class ItemServiceImplTest {
         when(userRepository.userByIdExists(userId)).thenReturn(true);
         when(itemRepository.itemByIdAndUserIdExists(itemId, userId)).thenReturn(false);
 
-        assertThrows(
-                NotFoundException.class,
-                () -> itemService.updateItem(item)
-        );
+        assertThatExceptionOfType(NotFoundException.class)
+                .isThrownBy(() -> itemService.updateItem(item));
 
         verify(userRepository, times(1)).userByIdExists(userId);
         verify(itemRepository, times(1)).itemByIdAndUserIdExists(itemId, userId);
@@ -202,7 +191,7 @@ class ItemServiceImplTest {
 
         when(itemRepository.searchItems(text)).thenReturn(Collections.emptyList());
 
-        assertTrue(itemService.searchItems(text).isEmpty());
+        assertThat(itemService.searchItems(text).isEmpty()).isTrue();
 
         verify(itemRepository, times(1)).searchItems(text);
     }
@@ -217,7 +206,7 @@ class ItemServiceImplTest {
 
         when(itemRepository.searchItems(text)).thenReturn(expected);
 
-        assertEquals(expected, itemService.searchItems(text));
+        assertThat(itemService.searchItems(text)).isEqualTo(expected);
 
         verify(itemRepository, times(1)).searchItems(text);
     }
@@ -236,7 +225,7 @@ class ItemServiceImplTest {
 
         when(itemRepository.searchItems(text)).thenReturn(expected);
 
-        assertEquals(expected, itemService.searchItems(text));
+        assertThat(itemService.searchItems(text)).isEqualTo(expected);
 
         verify(itemRepository, times(1)).searchItems(text);
     }
@@ -254,7 +243,7 @@ class ItemServiceImplTest {
 
         when(itemRepository.searchItems(text)).thenReturn(expected);
 
-        assertEquals(expected, itemService.searchItems(text));
+        assertThat(itemService.searchItems(text)).isEqualTo(expected);
 
         verify(itemRepository, times(1)).searchItems(text);
     }
