@@ -22,37 +22,26 @@ public class ErrorHandler {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public void handleValidationException(final Exception e, final HttpServletResponse response) throws IOException {
         log.info(e.getMessage(), e);
-        if (e.getMessage() != null) {
-            response.getWriter().write(e.getMessage());
-        }
+        response.sendError(HttpStatus.BAD_REQUEST.value(), e.getMessage());
     }
 
     @ExceptionHandler
-    @ResponseStatus(HttpStatus.NOT_FOUND)
     public void handleNotFoundException(final NotFoundException e, final HttpServletResponse response)
             throws IOException {
         log.info(e.getMessage(), e);
-        if (e.getMessage() != null) {
-            response.getWriter().write(e.getMessage());
-        }
+        response.sendError(HttpStatus.NOT_FOUND.value(), e.getMessage());
     }
 
     @ExceptionHandler
-    @ResponseStatus(HttpStatus.CONFLICT)
     public void handleConflictException(final ConflictException e, final HttpServletResponse response)
             throws IOException {
         log.info(e.getMessage(), e);
-        if (e.getMessage() != null) {
-            response.getWriter().write(e.getMessage());
-        }
+        response.sendError(HttpStatus.CONFLICT.value(), e.getMessage());
     }
 
     @ExceptionHandler
-    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public void handleThrowable(final Throwable e, final HttpServletResponse response) throws IOException {
         log.info(e.getMessage(), e);
-        if (e.getMessage() != null) {
-            response.getWriter().write(e.getMessage());
-        }
+        response.sendError(HttpStatus.INTERNAL_SERVER_ERROR.value(), e.getMessage());
     }
 }
