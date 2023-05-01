@@ -83,16 +83,14 @@ class UserControllerTest {
         String json = objectMapper.writeValueAsString(expectedUserDto);
 
         when(userService.getUsers()).thenReturn(expectedUser);
-        when(userMapper.toUserDto(user1)).thenReturn(userDto1);
-        when(userMapper.toUserDto(user2)).thenReturn(userDto2);
+        when(userMapper.toUserDto(expectedUser)).thenReturn(expectedUserDto);
 
         mockMvc.perform(get("/users"))
                 .andExpect(status().isOk())
                 .andExpect(content().json(json));
 
         verify(userService, times(1)).getUsers();
-        verify(userMapper, times(1)).toUserDto(user1);
-        verify(userMapper, times(1)).toUserDto(user2);
+        verify(userMapper, times(1)).toUserDto(expectedUser);
     }
 
     @Test

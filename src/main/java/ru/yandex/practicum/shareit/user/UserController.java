@@ -17,7 +17,6 @@ import ru.yandex.practicum.shareit.validator.ValidationOnCreate;
 
 import javax.validation.Valid;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/users")
@@ -31,9 +30,7 @@ public class UserController {
 
     @GetMapping
     public List<UserDto> getUsers() {
-        return userService.getUsers().stream()
-                .map(userMapper::toUserDto)
-                .collect(Collectors.toList());
+        return userMapper.toUserDto(userService.getUsers());
     }
 
     @GetMapping("/{id}")

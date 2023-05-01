@@ -6,7 +6,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import ru.yandex.practicum.shareit.item.ItemRepository;
-import ru.yandex.practicum.shareit.validator.ConflictException;
 import ru.yandex.practicum.shareit.validator.NotFoundException;
 
 import java.util.Collections;
@@ -34,11 +33,11 @@ class UserServiceImplTest {
 
     @Test
     void getUsers_shouldReturnEmptyListOfUsers() {
-        when(userRepository.getUsers()).thenReturn(Collections.emptyList());
+        when(userRepository.findAll()).thenReturn(Collections.emptyList());
 
         assertThat(userService.getUsers().isEmpty()).isTrue();
 
-        verify(userRepository, times(1)).getUsers();
+        verify(userRepository, times(1)).findAll();
     }
 
     @Test
@@ -48,11 +47,11 @@ class UserServiceImplTest {
 
         List<User> expected = List.of(user1, user2);
 
-        when(userRepository.getUsers()).thenReturn(expected);
+        when(userRepository.findAll()).thenReturn(expected);
 
         assertThat(userService.getUsers()).isEqualTo(expected);
 
-        verify(userRepository, times(1)).getUsers();
+        verify(userRepository, times(1)).findAll();
     }
 
     @Test
@@ -60,49 +59,34 @@ class UserServiceImplTest {
         Long userId = 1L;
         User user = initUser();
 
-        when(userRepository.getUserById(userId)).thenReturn(Optional.of(user));
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
 
         assertThat(userService.getUserById(userId)).isEqualTo(user);
 
-        verify(userRepository, times(1)).getUserById(userId);
+        verify(userRepository, times(1)).findById(userId);
     }
 
     @Test
     void getUserById_shouldThrowAnException_ifUserDoesNotExist() {
         Long userId = 1L;
 
-        when(userRepository.getUserById(userId)).thenThrow(NotFoundException.class);
+        when(userRepository.findById(userId)).thenThrow(NotFoundException.class);
 
         assertThatExceptionOfType(NotFoundException.class)
                 .isThrownBy(() -> userService.getUserById(userId));
 
-        verify(userRepository, times(1)).getUserById(userId);
+        verify(userRepository, times(1)).findById(userId);
     }
 
     @Test
     void createUser_shouldCreateAUser() {
         User user = initUser();
 
-        when(userRepository.userByEmailExists(user.getEmail(), user.getId())).thenReturn(false);
-        when(userRepository.createUser(user)).thenReturn(user);
+        when(userRepository.save(user)).thenReturn(user);
 
         assertThat(userService.createUser(user)).isEqualTo(user);
 
-        verify(userRepository, times(1)).userByEmailExists(user.getEmail(), user.getId());
-        verify(userRepository, times(1)).createUser(user);
-    }
-
-    @Test
-    void createUser_shouldThrowAnException_ifTheUserEmailExists() {
-        User user = initUser();
-
-        when(userRepository.userByEmailExists(user.getEmail(), user.getId())).thenReturn(true);
-
-        assertThatExceptionOfType(ConflictException.class)
-                .isThrownBy(() -> userService.createUser(user));
-
-        verify(userRepository, times(1)).userByEmailExists(user.getEmail(), user.getId());
-        verify(userRepository, never()).createUser(user);
+        verify(userRepository, times(1)).save(user);
     }
 
     @Test
@@ -111,15 +95,13 @@ class UserServiceImplTest {
         User user = initUser();
         user.setId(userId);
 
-        when(userRepository.userByIdExists(userId)).thenReturn(true);
-        when(userRepository.userByEmailExists(user.getEmail(), user.getId())).thenReturn(false);
-        when(userRepository.updateUser(user)).thenReturn(user);
+        when(userRepository.existsById(userId)).thenReturn(true);
+        when(userRepository.save(user)).thenReturn(user);
 
         assertThat(userService.updateUser(user)).isEqualTo(user);
 
-        verify(userRepository, times(1)).userByIdExists(userId);
-        verify(userRepository, times(1)).userByEmailExists(user.getEmail(), user.getId());
-        verify(userRepository, times(1)).updateUser(user);
+        verify(userRepository, times(1)).existsById(userId);
+        verify(userRepository, times(1)).save(user);
     }
 
     @Test
@@ -128,58 +110,40 @@ class UserServiceImplTest {
         User user = initUser();
         user.setId(userId);
 
-        when(userRepository.userByIdExists(userId)).thenReturn(false);
+        when(userRepository.existsById(userId)).thenReturn(false);
 
         assertThatExceptionOfType(NotFoundException.class)
                 .isThrownBy(() -> userService.updateUser(user));
 
-        verify(userRepository, times(1)).userByIdExists(userId);
-        verify(userRepository, never()).userByEmailExists(user.getEmail(), user.getId());
-        verify(userRepository, never()).updateUser(user);
-    }
-
-    @Test
-    void updateUser_shouldThrowAnException_ifTheUserEmailExists() {
-        Long userId = 1L;
-        User user = initUser();
-        user.setId(userId);
-
-        when(userRepository.userByIdExists(userId)).thenReturn(true);
-        when(userRepository.userByEmailExists(user.getEmail(), user.getId())).thenReturn(true);
-
-        assertThatExceptionOfType(ConflictException.class)
-                .isThrownBy(() -> userService.updateUser(user));
-
-        verify(userRepository, times(1)).userByIdExists(userId);
-        verify(userRepository, times(1)).userByEmailExists(user.getEmail(), user.getId());
-        verify(userRepository, never()).createUser(user);
+        verify(userRepository, times(1)).existsById(userId);
+        verify(userRepository, never()).save(user);
     }
 
     @Test
     void removeUserById_shouldRemoveTheUser() {
         Long userId = 1L;
 
-        when(userRepository.userByIdExists(userId)).thenReturn(true);
+        when(userRepository.existsById(userId)).thenReturn(true);
 
         userService.removeUserById(userId);
 
-        verify(userRepository, times(1)).userByIdExists(userId);
-        verify(itemRepository, times(1)).removeItemsByUserId(userId);
-        verify(userRepository, times(1)).removeUserById(userId);
+        verify(userRepository, times(1)).existsById(userId);
+        verify(itemRepository, times(1)).deleteByOwnerId(userId);
+        verify(userRepository, times(1)).deleteById(userId);
     }
 
     @Test
     void removeUserById_shouldThrowAnException_ifUserDoesNotExist() {
         Long userId = 1L;
 
-        when(userRepository.userByIdExists(userId)).thenReturn(false);
+        when(userRepository.existsById(userId)).thenReturn(false);
 
         assertThatExceptionOfType(NotFoundException.class)
                 .isThrownBy(() -> userService.removeUserById(userId));
 
-        verify(userRepository, times(1)).userByIdExists(userId);
-        verify(itemRepository, never()).removeItemsByUserId(userId);
-        verify(userRepository, never()).removeUserById(userId);
+        verify(userRepository, times(1)).existsById(userId);
+        verify(itemRepository, never()).deleteByOwnerId(userId);
+        verify(userRepository, never()).deleteById(userId);
     }
 
     private static User initUser() {

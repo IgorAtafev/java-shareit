@@ -84,16 +84,14 @@ class ItemControllerTest {
         String json = objectMapper.writeValueAsString(expectedItemDto);
 
         when(itemService.getItemsByUserId(userId)).thenReturn(expectedItem);
-        when(itemMapper.toItemDto(item1)).thenReturn(itemDto1);
-        when(itemMapper.toItemDto(item2)).thenReturn(itemDto2);
+        when(itemMapper.toItemDto(expectedItem)).thenReturn(expectedItemDto);
 
         mockMvc.perform(get("/items").header("X-Sharer-User-Id", userId))
                 .andExpect(status().isOk())
                 .andExpect(content().json(json));
 
         verify(itemService, times(1)).getItemsByUserId(userId);
-        verify(itemMapper, times(1)).toItemDto(item1);
-        verify(itemMapper, times(1)).toItemDto(item2);
+        verify(itemMapper, times(1)).toItemDto(expectedItem);
     }
 
     @Test

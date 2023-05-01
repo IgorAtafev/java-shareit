@@ -33,9 +33,7 @@ public class ItemController {
 
     @GetMapping
     public List<ItemDto> getItemsByUserId(@RequestHeader("X-Sharer-User-Id") Long userId) {
-        return itemService.getItemsByUserId(userId).stream()
-                .map(itemMapper::toItemDto)
-                .collect(Collectors.toList());
+        return itemMapper.toItemDto(itemService.getItemsByUserId(userId));
     }
 
     @GetMapping("/{id}")

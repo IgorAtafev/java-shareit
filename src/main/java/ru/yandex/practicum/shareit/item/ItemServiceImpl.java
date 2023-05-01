@@ -16,44 +16,44 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public Collection<Item> getItemsByUserId(Long userId) {
-        if (!userRepository.userByIdExists(userId)) {
+        if (!userRepository.existsById(userId)) {
             throw new NotFoundException(String.format("User with id %d does not exist", userId));
         }
 
-        return itemRepository.getItemsByUserId(userId);
+        return itemRepository.findByOwnerIdOrderById(userId);
     }
 
     @Override
     public Item getItemById(Long id) {
-        return itemRepository.getItemById(id).orElseThrow(
+        return itemRepository.findById(id).orElseThrow(
                 () -> new NotFoundException(String.format("Item with id %d does not exist", id)));
     }
 
     @Override
     public Item createItem(Item item) {
-        if (!userRepository.userByIdExists(item.getOwner().getId())) {
+        if (!userRepository.existsById(item.getOwner().getId())) {
             throw new NotFoundException(String.format("User with id %d does not exist", item.getOwner().getId()));
         }
 
-        return itemRepository.createItem(item);
+        return itemRepository.save(item);
     }
 
     @Override
     public Item updateItem(Item item) {
-        if (!userRepository.userByIdExists(item.getOwner().getId())) {
+        if (!userRepository.existsById(item.getOwner().getId())) {
             throw new NotFoundException(String.format("User with id %d does not exist", item.getOwner().getId()));
         }
 
-        if (!itemRepository.itemByIdAndUserIdExists(item.getId(), item.getOwner().getId())) {
+        if (!itemRepository.existsByIdAndOwnerId(item.getId(), item.getOwner().getId())) {
             throw new NotFoundException(String.format("Item with id %d and user id %d does not exist",
                     item.getId(), item.getOwner().getId()));
         }
 
-        return itemRepository.updateItem(item);
+        return itemRepository.save(item);
     }
 
     @Override
     public Collection<Item> searchItems(String text) {
-        return itemRepository.searchItems(text);
+        return itemRepository.searchItemsByText(text);
     }
 }

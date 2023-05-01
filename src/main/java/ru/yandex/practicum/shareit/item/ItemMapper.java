@@ -4,6 +4,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.shareit.user.UserService;
 
+import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
+
 @Component
 @RequiredArgsConstructor
 public class ItemMapper {
@@ -20,6 +24,12 @@ public class ItemMapper {
         itemDto.setAvailable(item.getAvailable());
 
         return itemDto;
+    }
+
+    public List<ItemDto> toItemDto(Collection<Item> items) {
+        return items.stream()
+                .map(this::toItemDto)
+                .collect(Collectors.toList());
     }
 
     public Item toItem(ItemDto itemDto, Long ownerId) {

@@ -3,6 +3,10 @@ package ru.yandex.practicum.shareit.user;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
+
 @Component
 @RequiredArgsConstructor
 public class UserMapper {
@@ -17,6 +21,12 @@ public class UserMapper {
         userDto.setName(user.getName());
 
         return userDto;
+    }
+
+    public List<UserDto> toUserDto(Collection<User> users) {
+        return users.stream()
+                .map(this::toUserDto)
+                .collect(Collectors.toList());
     }
 
     public User toUser(UserDto userDto) {

@@ -4,7 +4,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import javax.servlet.http.HttpServletResponse;
@@ -19,7 +18,6 @@ public class ErrorHandler {
             MethodArgumentNotValidException.class,
             ConstraintViolationException.class
     })
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
     public void handleValidationException(final Exception e, final HttpServletResponse response) throws IOException {
         log.info(e.getMessage(), e);
         response.sendError(HttpStatus.BAD_REQUEST.value(), e.getMessage());
@@ -30,13 +28,6 @@ public class ErrorHandler {
             throws IOException {
         log.info(e.getMessage(), e);
         response.sendError(HttpStatus.NOT_FOUND.value(), e.getMessage());
-    }
-
-    @ExceptionHandler
-    public void handleConflictException(final ConflictException e, final HttpServletResponse response)
-            throws IOException {
-        log.info(e.getMessage(), e);
-        response.sendError(HttpStatus.CONFLICT.value(), e.getMessage());
     }
 
     @ExceptionHandler
