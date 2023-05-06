@@ -4,6 +4,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import ru.yandex.practicum.shareit.booking.BookingForItemsDto;
 import ru.yandex.practicum.shareit.validator.ValidationOnCreate;
 
 import javax.validation.constraints.NotBlank;
@@ -30,4 +31,10 @@ public class ItemDto {
 
     @NotNull(groups = ValidationOnCreate.class, message = "Available cannot be empty")
     private Boolean available;
+
+    @Null(groups = ValidationOnCreate.class, message = "Last booking must be null")
+    private BookingForItemsDto lastBooking;
+
+    @Null(groups = ValidationOnCreate.class, message = "Next booking must be null")
+    private BookingForItemsDto nextBooking;
 }

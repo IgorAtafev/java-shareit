@@ -2,6 +2,7 @@ package ru.yandex.practicum.shareit.user;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.yandex.practicum.shareit.item.ItemRepository;
 import ru.yandex.practicum.shareit.validator.NotFoundException;
 
@@ -32,13 +33,10 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User updateUser(User user) {
-        if (!userRepository.existsById(user.getId())) {
-            throw new NotFoundException(String.format("User with id %d does not exist", user.getId()));
-        }
-
         return userRepository.save(user);
     }
 
+    @Transactional
     @Override
     public void removeUserById(Long id) {
         if (!userRepository.existsById(id)) {

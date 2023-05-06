@@ -31,19 +31,11 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public Item createItem(Item item) {
-        if (!userRepository.existsById(item.getOwner().getId())) {
-            throw new NotFoundException(String.format("User with id %d does not exist", item.getOwner().getId()));
-        }
-
         return itemRepository.save(item);
     }
 
     @Override
     public Item updateItem(Item item) {
-        if (!userRepository.existsById(item.getOwner().getId())) {
-            throw new NotFoundException(String.format("User with id %d does not exist", item.getOwner().getId()));
-        }
-
         if (!itemRepository.existsByIdAndOwnerId(item.getId(), item.getOwner().getId())) {
             throw new NotFoundException(String.format("Item with id %d and user id %d does not exist",
                     item.getId(), item.getOwner().getId()));

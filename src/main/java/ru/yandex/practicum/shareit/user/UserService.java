@@ -7,7 +7,7 @@ public interface UserService {
     /**
      * Returns a list of all users
      *
-     * @return list of all users
+     * @return list of users
      */
     Collection<User> getUsers();
 

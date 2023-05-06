@@ -11,7 +11,7 @@ public interface ItemRepository extends JpaRepository<Item, Long> {
      * Returns a list of user items
      *
      * @param ownerId
-     * @return list of user items
+     * @return list of items
      */
     Collection<Item> findByOwnerIdOrderById(Long ownerId);
 
@@ -25,8 +25,8 @@ public interface ItemRepository extends JpaRepository<Item, Long> {
     @Query("select i " +
             "from Item i " +
             "where i.available = true " +
-            "and (lower(i.name) like lower(concat('%', ?1,'%')) " +
-            "or lower(i.description) like lower(concat('%', ?1,'%'))) " +
+            "and (upper(i.name) like upper(concat('%', ?1,'%')) " +
+            "or upper(i.description) like upper(concat('%', ?1,'%'))) " +
             "order by i.id")
     Collection<Item> searchItemsByText(String text);
 

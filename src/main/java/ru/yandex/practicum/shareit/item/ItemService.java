@@ -5,11 +5,11 @@ import java.util.Collection;
 public interface ItemService {
 
     /**
-     * Returns a list of user items
+     * Returns a list of user's items
      * If the user is not found throws NotFoundException
      *
      * @param userId
-     * @return list of user items
+     * @return list of items
      */
     Collection<Item> getItemsByUserId(Long userId);
 
@@ -23,7 +23,7 @@ public interface ItemService {
     Item getItemById(Long id);
 
     /**
-     * Creates a new item
+     * Creates a new item by the user
      * If the user is not found throws NotFoundException
      *
      * @param item
@@ -32,7 +32,7 @@ public interface ItemService {
     Item createItem(Item item);
 
     /**
-     * Updates the item
+     * Updates the item by the user
      * If the user is not found throws NotFoundException
      * If the item is not found throws NotFoundException
      *

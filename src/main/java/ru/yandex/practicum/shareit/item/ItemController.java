@@ -19,6 +19,7 @@ import ru.yandex.practicum.shareit.validator.ValidationOnCreate;
 import javax.validation.Valid;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @RestController
@@ -33,12 +34,16 @@ public class ItemController {
 
     @GetMapping
     public List<ItemDto> getItemsByUserId(@RequestHeader("X-Sharer-User-Id") Long userId) {
-        return itemMapper.toItemDto(itemService.getItemsByUserId(userId));
+        return itemMapper.toItemWithBookingsDto(itemService.getItemsByUserId(userId));
     }
 
     @GetMapping("/{id}")
-    public ItemDto getItemById(@PathVariable Long id) {
-        return itemMapper.toItemDto(itemService.getItemById(id));
+    public ItemDto getItemById(@RequestHeader("X-Sharer-User-Id") Long userId, @PathVariable Long id) {
+        Item item = itemService.getItemById(id);
+        if (Objects.equals(userId, item.getOwner().getId())) {
+            return itemMapper.toItemWithBookingsDto(item);
+        }
+        return itemMapper.toItemDto(item);
     }
 
     @PostMapping

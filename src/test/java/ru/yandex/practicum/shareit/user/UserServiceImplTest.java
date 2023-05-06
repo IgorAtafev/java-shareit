@@ -95,28 +95,11 @@ class UserServiceImplTest {
         User user = initUser();
         user.setId(userId);
 
-        when(userRepository.existsById(userId)).thenReturn(true);
         when(userRepository.save(user)).thenReturn(user);
 
         assertThat(userService.updateUser(user)).isEqualTo(user);
 
-        verify(userRepository, times(1)).existsById(userId);
         verify(userRepository, times(1)).save(user);
-    }
-
-    @Test
-    void updateUser_shouldThrowAnException_ifUserDoesNotExist() {
-        Long userId = 1L;
-        User user = initUser();
-        user.setId(userId);
-
-        when(userRepository.existsById(userId)).thenReturn(false);
-
-        assertThatExceptionOfType(NotFoundException.class)
-                .isThrownBy(() -> userService.updateUser(user));
-
-        verify(userRepository, times(1)).existsById(userId);
-        verify(userRepository, never()).save(user);
     }
 
     @Test

@@ -37,6 +37,5 @@ public class Item {
     private Boolean available;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @ToString.Exclude
     private User owner;
 }

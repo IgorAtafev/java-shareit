@@ -105,28 +105,11 @@ class ItemServiceImplTest {
         Item item = initItem();
         item.getOwner().setId(userId);
 
-        when(userRepository.existsById(userId)).thenReturn(true);
         when(itemRepository.save(item)).thenReturn(item);
 
         assertThat(itemService.createItem(item)).isEqualTo(item);
 
-        verify(userRepository, times(1)).existsById(userId);
         verify(itemRepository, times(1)).save(item);
-    }
-
-    @Test
-    void createItem_shouldThrowAnException_ifUserDoesNotExist() {
-        Long userId = 1L;
-        Item item = initItem();
-        item.getOwner().setId(userId);
-
-        when(userRepository.existsById(userId)).thenReturn(false);
-
-        assertThatExceptionOfType(NotFoundException.class)
-                .isThrownBy(() -> itemService.createItem(item));
-
-        verify(userRepository, times(1)).existsById(userId);
-        verify(itemRepository, never()).save(item);
     }
 
     @Test
@@ -137,33 +120,13 @@ class ItemServiceImplTest {
         item.getOwner().setId(userId);
         item.setId(itemId);
 
-        when(userRepository.existsById(userId)).thenReturn(true);
         when(itemRepository.existsByIdAndOwnerId(itemId, userId)).thenReturn(true);
         when(itemRepository.save(item)).thenReturn(item);
 
         assertThat(itemService.updateItem(item)).isEqualTo(item);
 
-        verify(userRepository, times(1)).existsById(userId);
         verify(itemRepository, times(1)).existsByIdAndOwnerId(itemId, userId);
         verify(itemRepository, times(1)).save(item);
-    }
-
-    @Test
-    void updateItem_shouldThrowAnException_ifUserDoesNotExist() {
-        Long userId = 1L;
-        Long itemId = 2L;
-        Item item = initItem();
-        item.getOwner().setId(userId);
-        item.setId(itemId);
-
-        when(userRepository.existsById(userId)).thenReturn(false);
-
-        assertThatExceptionOfType(NotFoundException.class)
-                .isThrownBy(() -> itemService.updateItem(item));
-
-        verify(userRepository, times(1)).existsById(userId);
-        verify(itemRepository, never()).existsByIdAndOwnerId(itemId, userId);
-        verify(itemRepository, never()).save(item);
     }
 
     @Test
@@ -174,13 +137,11 @@ class ItemServiceImplTest {
         item.getOwner().setId(userId);
         item.setId(itemId);
 
-        when(userRepository.existsById(userId)).thenReturn(true);
         when(itemRepository.existsByIdAndOwnerId(itemId, userId)).thenReturn(false);
 
         assertThatExceptionOfType(NotFoundException.class)
                 .isThrownBy(() -> itemService.updateItem(item));
 
-        verify(userRepository, times(1)).existsById(userId);
         verify(itemRepository, times(1)).existsByIdAndOwnerId(itemId, userId);
         verify(itemRepository, never()).save(item);
     }

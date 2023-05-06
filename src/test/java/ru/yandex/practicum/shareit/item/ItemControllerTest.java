@@ -12,6 +12,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import ru.yandex.practicum.shareit.user.User;
 import ru.yandex.practicum.shareit.validator.ErrorHandler;
 import ru.yandex.practicum.shareit.validator.NotFoundException;
 
@@ -84,14 +85,14 @@ class ItemControllerTest {
         String json = objectMapper.writeValueAsString(expectedItemDto);
 
         when(itemService.getItemsByUserId(userId)).thenReturn(expectedItem);
-        when(itemMapper.toItemDto(expectedItem)).thenReturn(expectedItemDto);
+        when(itemMapper.toItemWithBookingsDto(expectedItem)).thenReturn(expectedItemDto);
 
         mockMvc.perform(get("/items").header("X-Sharer-User-Id", userId))
                 .andExpect(status().isOk())
                 .andExpect(content().json(json));
 
         verify(itemService, times(1)).getItemsByUserId(userId);
-        verify(itemMapper, times(1)).toItemDto(expectedItem);
+        verify(itemMapper, times(1)).toItemWithBookingsDto(expectedItem);
     }
 
     @Test
@@ -107,17 +108,43 @@ class ItemControllerTest {
     }
 
     @Test
-    void getItemById_shouldReturnItemById() throws Exception {
-        Long itemId = 1L;
+    void getItemById_shouldReturnItemById_ifUserIsOwner() throws Exception {
+        Long userId = 1L;
+        Long itemId = 2L;
+        User user = initUser();
+        user.setId(userId);
         ItemDto itemDto = initItemDto();
         Item item = initItem();
+        item.setOwner(user);
+
+        String json = objectMapper.writeValueAsString(itemDto);
+
+        when(itemService.getItemById(itemId)).thenReturn(item);
+        when(itemMapper.toItemWithBookingsDto(item)).thenReturn(itemDto);
+
+        mockMvc.perform(get("/items/{id}", itemId).header("X-Sharer-User-Id", userId))
+                .andExpect(status().isOk())
+                .andExpect(content().json(json));
+
+        verify(itemService, times(1)).getItemById(itemId);
+        verify(itemMapper, times(1)).toItemWithBookingsDto(item);
+    }
+
+    @Test
+    void getItemById_shouldReturnItemById_ifUserIsNotOwner() throws Exception {
+        Long userId = 1L;
+        Long itemId = 2L;
+        User user = initUser();
+        ItemDto itemDto = initItemDto();
+        Item item = initItem();
+        item.setOwner(user);
 
         String json = objectMapper.writeValueAsString(itemDto);
 
         when(itemService.getItemById(itemId)).thenReturn(item);
         when(itemMapper.toItemDto(item)).thenReturn(itemDto);
 
-        mockMvc.perform(get("/items/{id}", itemId))
+        mockMvc.perform(get("/items/{id}", itemId).header("X-Sharer-User-Id", userId))
                 .andExpect(status().isOk())
                 .andExpect(content().json(json));
 
@@ -127,11 +154,12 @@ class ItemControllerTest {
 
     @Test
     void getItemById_shouldResponseWithNotFound_ifItemDoesNotExist() throws Exception {
-        Long itemId = 1L;
+        Long userId = 1L;
+        Long itemId = 2L;
 
         when(itemService.getItemById(itemId)).thenThrow(NotFoundException.class);
 
-        mockMvc.perform(get("/items/{id}", itemId))
+        mockMvc.perform(get("/items/{id}", itemId).header("X-Sharer-User-Id", userId))
                 .andExpect(status().isNotFound());
 
         verify(itemService, times(1)).getItemById(itemId);
@@ -417,6 +445,15 @@ class ItemControllerTest {
         consumer.accept(itemDto);
 
         return itemDto;
+    }
+
+    private static User initUser() {
+        User user = new User();
+
+        user.setEmail("user@user.com");
+        user.setName("user");
+
+        return user;
     }
 
     private static ItemDto initItemDto() {
