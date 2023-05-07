@@ -11,6 +11,7 @@ import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Null;
 import javax.validation.constraints.Size;
+import java.util.List;
 
 @Getter
 @Setter
@@ -37,4 +38,7 @@ public class ItemDto {
 
     @Null(groups = ValidationOnCreate.class, message = "Next booking must be null")
     private BookingForItemsDto nextBooking;
+
+    @Null(groups = ValidationOnCreate.class, message = "Comments must be null")
+    private List<CommentForResponseDto> comments;
 }

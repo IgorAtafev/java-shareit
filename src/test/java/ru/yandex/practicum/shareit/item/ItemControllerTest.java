@@ -85,14 +85,14 @@ class ItemControllerTest {
         String json = objectMapper.writeValueAsString(expectedItemDto);
 
         when(itemService.getItemsByUserId(userId)).thenReturn(expectedItem);
-        when(itemMapper.toItemWithBookingsDto(expectedItem)).thenReturn(expectedItemDto);
+        when(itemMapper.toItemWithBookingsAndCommentsDto(expectedItem)).thenReturn(expectedItemDto);
 
         mockMvc.perform(get("/items").header("X-Sharer-User-Id", userId))
                 .andExpect(status().isOk())
                 .andExpect(content().json(json));
 
         verify(itemService, times(1)).getItemsByUserId(userId);
-        verify(itemMapper, times(1)).toItemWithBookingsDto(expectedItem);
+        verify(itemMapper, times(1)).toItemWithBookingsAndCommentsDto(expectedItem);
     }
 
     @Test
@@ -120,14 +120,14 @@ class ItemControllerTest {
         String json = objectMapper.writeValueAsString(itemDto);
 
         when(itemService.getItemById(itemId)).thenReturn(item);
-        when(itemMapper.toItemWithBookingsDto(item)).thenReturn(itemDto);
+        when(itemMapper.toItemWithBookingsAndCommentsDto(item)).thenReturn(itemDto);
 
         mockMvc.perform(get("/items/{id}", itemId).header("X-Sharer-User-Id", userId))
                 .andExpect(status().isOk())
                 .andExpect(content().json(json));
 
         verify(itemService, times(1)).getItemById(itemId);
-        verify(itemMapper, times(1)).toItemWithBookingsDto(item);
+        verify(itemMapper, times(1)).toItemWithBookingsAndCommentsDto(item);
     }
 
     @Test
@@ -142,14 +142,14 @@ class ItemControllerTest {
         String json = objectMapper.writeValueAsString(itemDto);
 
         when(itemService.getItemById(itemId)).thenReturn(item);
-        when(itemMapper.toItemDto(item)).thenReturn(itemDto);
+        when(itemMapper.toItemWithCommentsDto(item)).thenReturn(itemDto);
 
         mockMvc.perform(get("/items/{id}", itemId).header("X-Sharer-User-Id", userId))
                 .andExpect(status().isOk())
                 .andExpect(content().json(json));
 
         verify(itemService, times(1)).getItemById(itemId);
-        verify(itemMapper, times(1)).toItemDto(item);
+        verify(itemMapper, times(1)).toItemWithCommentsDto(item);
     }
 
     @Test

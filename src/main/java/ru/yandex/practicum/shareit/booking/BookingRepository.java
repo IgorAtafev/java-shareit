@@ -4,6 +4,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.querydsl.QuerydslPredicateExecutor;
 
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 
@@ -28,6 +29,19 @@ public interface BookingRepository extends JpaRepository<Booking, Long>, Queryds
      * @return list of bookings
      */
     Collection<Booking> findByItemIdAndStatus(Long itemId, BookingStatus status, Sort sort);
+
+    /**
+     * Checks for a booking by item id, user id, status, and rental expiration date
+     *
+     * @param itemId
+     * @param userId
+     * @param status
+     * @param dateTime
+     * @return
+     */
+    boolean existsByItemIdAndBookerIdAndStatusAndEndBefore(
+            Long itemId, Long userId, BookingStatus status, LocalDateTime dateTime
+    );
 
     /**
      * Removes a user's bookings

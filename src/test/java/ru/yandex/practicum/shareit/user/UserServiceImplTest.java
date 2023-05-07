@@ -5,6 +5,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import ru.yandex.practicum.shareit.booking.BookingRepository;
 import ru.yandex.practicum.shareit.item.ItemRepository;
 import ru.yandex.practicum.shareit.validator.NotFoundException;
 
@@ -27,6 +28,9 @@ class UserServiceImplTest {
 
     @Mock
     private ItemRepository itemRepository;
+
+    @Mock
+    private BookingRepository bookingRepository;
 
     @InjectMocks
     private UserServiceImpl userService;
@@ -111,6 +115,8 @@ class UserServiceImplTest {
         userService.removeUserById(userId);
 
         verify(userRepository, times(1)).existsById(userId);
+        verify(bookingRepository, times(1)).deleteByBookerId(userId);
+        verify(bookingRepository, times(1)).deleteByItemOwnerId(userId);
         verify(itemRepository, times(1)).deleteByOwnerId(userId);
         verify(userRepository, times(1)).deleteById(userId);
     }
@@ -125,6 +131,8 @@ class UserServiceImplTest {
                 .isThrownBy(() -> userService.removeUserById(userId));
 
         verify(userRepository, times(1)).existsById(userId);
+        verify(bookingRepository, never()).deleteByBookerId(userId);
+        verify(bookingRepository, never()).deleteByItemOwnerId(userId);
         verify(itemRepository, never()).deleteByOwnerId(userId);
         verify(userRepository, never()).deleteById(userId);
     }

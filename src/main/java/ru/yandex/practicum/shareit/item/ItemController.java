@@ -31,19 +31,20 @@ public class ItemController {
 
     private final ItemService itemService;
     private final ItemMapper itemMapper;
+    private final CommentMapper commentMapper;
 
     @GetMapping
     public List<ItemDto> getItemsByUserId(@RequestHeader("X-Sharer-User-Id") Long userId) {
-        return itemMapper.toItemWithBookingsDto(itemService.getItemsByUserId(userId));
+        return itemMapper.toItemWithBookingsAndCommentsDto(itemService.getItemsByUserId(userId));
     }
 
     @GetMapping("/{id}")
     public ItemDto getItemById(@RequestHeader("X-Sharer-User-Id") Long userId, @PathVariable Long id) {
         Item item = itemService.getItemById(id);
         if (Objects.equals(userId, item.getOwner().getId())) {
-            return itemMapper.toItemWithBookingsDto(item);
+            return itemMapper.toItemWithBookingsAndCommentsDto(item);
         }
-        return itemMapper.toItemDto(item);
+        return itemMapper.toItemWithCommentsDto(item);
     }
 
     @PostMapping
@@ -77,5 +78,17 @@ public class ItemController {
         return itemService.searchItems(text).stream()
                 .map(itemMapper::toItemDto)
                 .collect(Collectors.toList());
+    }
+
+    @PostMapping("/{id}/comment")
+    public CommentForResponseDto createComment(
+            @RequestHeader("X-Sharer-User-Id") Long userId,
+            @PathVariable Long id,
+            @RequestBody @Valid CommentForCreateDto commentDto
+    ) {
+        log.info("Request received POST /items/{}/comment: '{}', userId: {}", id, commentDto, userId);
+        return commentMapper.toCommentDto(
+                itemService.createComment(commentMapper.toComment(commentDto, id, userId))
+        );
     }
 }
