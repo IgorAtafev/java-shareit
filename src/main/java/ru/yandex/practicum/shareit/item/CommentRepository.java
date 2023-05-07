@@ -25,4 +25,11 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
      * @return list of comments
      */
     Collection<Comment> findByItemId(Long itemId, Sort sort);
+
+    /**
+     * Removes a user's comments
+     *
+     * @param userId
+     */
+    void deleteByAuthorId(Long userId);
 }
