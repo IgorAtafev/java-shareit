@@ -37,7 +37,7 @@ public interface BookingRepository extends JpaRepository<Booking, Long>, Queryds
      * @param userId
      * @param status
      * @param dateTime
-     * @return
+     * @return true or false
      */
     boolean existsByItemIdAndBookerIdAndStatusAndEndBefore(
             Long itemId, Long userId, BookingStatus status, LocalDateTime dateTime
