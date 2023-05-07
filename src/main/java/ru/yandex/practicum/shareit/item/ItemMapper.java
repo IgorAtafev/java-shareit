@@ -40,9 +40,10 @@ public class ItemMapper {
 
     public ItemDto toItemWithBookingsDto(Item item) {
         ItemDto itemDto = toItemDto(item);
-        List<ItemDto> itemsDto = List.of(itemDto);
-        setBookingForItems(itemsDto);
-        return itemsDto.get(0);
+        List<Booking> bookings = bookingService.getBookingsByItemId(itemDto.getId());
+
+        setBookingForItem(itemDto, bookings);
+        return itemDto;
     }
 
     public List<ItemDto> toItemWithBookingsDto(Collection<Item> items) {
@@ -52,7 +53,16 @@ public class ItemMapper {
             return itemsDto;
         }
 
-        setBookingForItems(itemsDto);
+        List<Long> itemIds = itemsDto.stream()
+                .map(ItemDto::getId)
+                .collect(Collectors.toList());
+
+        Map<Long, List<Booking>> bookings = bookingService.getBookingsByItemIds(itemIds);
+
+        for (ItemDto itemDto : itemsDto) {
+            setBookingForItem(itemDto, bookings.get(itemDto.getId()));
+        }
+
         return itemsDto;
     }
 
@@ -83,16 +93,8 @@ public class ItemMapper {
         return item;
     }
 
-    private void setBookingForItems(List<ItemDto> itemsDto) {
-        List<Long> itemIds = itemsDto.stream()
-                .map(ItemDto::getId)
-                .collect(Collectors.toList());
-
-        Map<Long, List<Booking>> bookings = bookingService.getBookingsByItemIds(itemIds);
-
-        for (ItemDto itemDto : itemsDto) {
-            itemDto.setLastBooking(bookingForItemsMapper.getLastBooking(bookings.get(itemDto.getId())));
-            itemDto.setNextBooking(bookingForItemsMapper.getNextBooking(bookings.get(itemDto.getId())));
-        }
+    private void setBookingForItem(ItemDto itemDto, List<Booking> bookings) {
+       itemDto.setLastBooking(bookingForItemsMapper.getLastBooking(bookings));
+       itemDto.setNextBooking(bookingForItemsMapper.getNextBooking(bookings));
     }
 }

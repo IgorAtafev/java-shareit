@@ -5,11 +5,13 @@ import com.querydsl.core.types.dsl.BooleanExpression;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.yandex.practicum.shareit.user.UserRepository;
 import ru.yandex.practicum.shareit.validator.NotFoundException;
 import ru.yandex.practicum.shareit.validator.ValidationException;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -22,6 +24,7 @@ public class BookingServiceImpl implements BookingService {
     private final BookingRepository bookingRepository;
     private final UserRepository userRepository;
 
+    @Transactional(readOnly = true)
     @Override
     public Iterable<Booking> getBookingsByUserId(Long userId, String state) {
         if (!userRepository.existsById(userId)) {
@@ -30,11 +33,12 @@ public class BookingServiceImpl implements BookingService {
 
         BookingListState bookingListState = getBookingListState(state);
         BooleanExpression expression = QBooking.booking.booker.id.eq(userId);
-        Predicate predicate = getPredicateByUserIdAndState(userId, bookingListState, expression);
+        Predicate predicate = getPredicateByUserIdAndState(bookingListState, expression);
 
         return bookingRepository.findAll(predicate, Sort.by("start").descending());
     }
 
+    @Transactional(readOnly = true)
     @Override
     public Iterable<Booking> getBookingsByItemOwnerId(Long userId, String state) {
         if (!userRepository.existsById(userId)) {
@@ -43,11 +47,12 @@ public class BookingServiceImpl implements BookingService {
 
         BookingListState bookingListState = getBookingListState(state);
         BooleanExpression expression = QBooking.booking.item.owner.id.eq(userId);
-        Predicate predicate = getPredicateByUserIdAndState(userId, bookingListState, expression);
+        Predicate predicate = getPredicateByUserIdAndState(bookingListState, expression);
 
         return bookingRepository.findAll(predicate, Sort.by("start").descending());
     }
 
+    @Transactional(readOnly = true)
     @Override
     public Booking getBookingById(Long id, Long userId) {
         Booking booking = bookingRepository.findById(id).orElseThrow(
@@ -62,6 +67,7 @@ public class BookingServiceImpl implements BookingService {
         return booking;
     }
 
+    @Transactional
     @Override
     public Booking createBooking(Booking booking) {
         if (Objects.equals(booking.getBooker().getId(), booking.getItem().getOwner().getId())) {
@@ -82,6 +88,7 @@ public class BookingServiceImpl implements BookingService {
         return bookingRepository.save(booking);
     }
 
+    @Transactional
     @Override
     public Booking approveBookingById(Long id, Boolean approved, Long userId) {
         Booking booking = bookingRepository.findById(id).orElseThrow(
@@ -106,11 +113,19 @@ public class BookingServiceImpl implements BookingService {
         return bookingRepository.save(booking);
     }
 
+    @Transactional(readOnly = true)
     @Override
     public Map<Long, List<Booking>> getBookingsByItemIds(List<Long> itemIds) {
         return bookingRepository.findByItemIdInAndStatus(itemIds, BookingStatus.APPROVED,
                         Sort.by("start").ascending()).stream()
                         .collect(Collectors.groupingBy(booking -> booking.getItem().getId()));
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public List<Booking> getBookingsByItemId(Long itemId) {
+        return new ArrayList<>(bookingRepository.findByItemIdAndStatus(itemId, BookingStatus.APPROVED,
+                Sort.by("start").ascending()));
     }
 
     private BookingListState getBookingListState(String state) {
@@ -122,7 +137,7 @@ public class BookingServiceImpl implements BookingService {
     }
 
     private Predicate getPredicateByUserIdAndState(
-            Long userId, BookingListState bookingListState, BooleanExpression sourceExpression
+            BookingListState bookingListState, BooleanExpression sourceExpression
     ) {
         LocalDateTime now = LocalDateTime.now();
         BooleanExpression addExpression = null;

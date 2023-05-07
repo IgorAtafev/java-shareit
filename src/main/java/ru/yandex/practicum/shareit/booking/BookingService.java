@@ -66,4 +66,12 @@ public interface BookingService {
      * @return a list of bookings for item IDs
      */
     Map<Long, List<Booking>> getBookingsByItemIds(List<Long> itemIds);
+
+    /**
+     * Returns a list of bookings for item ID
+     *
+     * @param itemId
+     * @return a list of bookings for item ID
+     */
+    List<Booking> getBookingsByItemId(Long itemId);
 }

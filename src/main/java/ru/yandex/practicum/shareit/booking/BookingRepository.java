@@ -18,4 +18,28 @@ public interface BookingRepository extends JpaRepository<Booking, Long>, Queryds
      * @return list of bookings
      */
     Collection<Booking> findByItemIdInAndStatus(List<Long> itemIds, BookingStatus status, Sort sort);
+
+    /**
+     * Returns a list of bookings for item ID and status
+     *
+     * @param itemId
+     * @param status
+     * @param sort
+     * @return list of bookings
+     */
+    Collection<Booking> findByItemIdAndStatus(Long itemId, BookingStatus status, Sort sort);
+
+    /**
+     * Removes a user's bookings
+     *
+     * @param userId
+     */
+    void deleteByBookerId(Long userId);
+
+    /**
+     * Removes bookings of all user items
+     *
+     * @param userId
+     */
+    void deleteByItemOwnerId(Long userId);
 }
