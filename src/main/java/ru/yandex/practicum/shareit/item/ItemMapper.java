@@ -42,7 +42,7 @@ public class ItemMapper {
         ItemDto itemDto = toItemDto(item);
         List<Booking> bookings = bookingService.getBookingsByItemId(itemDto.getId());
 
-        setBookingForItem(itemDto, bookings);
+        setLastAndNextBookings(itemDto, bookings);
         return itemDto;
     }
 
@@ -60,7 +60,7 @@ public class ItemMapper {
         Map<Long, List<Booking>> bookings = bookingService.getBookingsByItemIds(itemIds);
 
         for (ItemDto itemDto : itemsDto) {
-            setBookingForItem(itemDto, bookings.get(itemDto.getId()));
+            setLastAndNextBookings(itemDto, bookings.get(itemDto.getId()));
         }
 
         return itemsDto;
@@ -93,7 +93,7 @@ public class ItemMapper {
         return item;
     }
 
-    private void setBookingForItem(ItemDto itemDto, List<Booking> bookings) {
+    private void setLastAndNextBookings(ItemDto itemDto, List<Booking> bookings) {
        itemDto.setLastBooking(bookingForItemsMapper.getLastBooking(bookings));
        itemDto.setNextBooking(bookingForItemsMapper.getNextBooking(bookings));
     }
