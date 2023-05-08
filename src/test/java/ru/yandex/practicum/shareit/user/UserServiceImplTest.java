@@ -65,6 +65,7 @@ class UserServiceImplTest {
     @Test
     void getUserById_shouldReturnUserById() {
         Long userId = 1L;
+
         User user = initUser();
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
@@ -100,6 +101,7 @@ class UserServiceImplTest {
     @Test
     void updateUser_shouldUpdateTheUser() {
         Long userId = 1L;
+
         User user = initUser();
         user.setId(userId);
 

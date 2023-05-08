@@ -67,6 +67,7 @@ class UserControllerTest {
     void getUsers_shouldReturnListOfUsers() throws Exception {
         Long userId1 = 1L;
         Long userId2 = 2L;
+
         UserDto userDto1 = initUserDto();
         UserDto userDto2 = initUserDto();
         User user1 = initUser();
@@ -155,6 +156,7 @@ class UserControllerTest {
     @Test
     void updateUserById_shouldResponseWithOk() throws Exception {
         Long userId = 1L;
+
         UserDto userDto = initUserDto();
         User user = initUser();
         userDto.setId(userId);
@@ -177,6 +179,7 @@ class UserControllerTest {
     @Test
     void updateUserById_shouldResponseWithNotFound_ifUserDoesNotExist() throws Exception {
         Long userId = 1L;
+
         UserDto userDto = initUserDto();
         User user = initUser();
         userDto.setId(userId);
@@ -199,7 +202,9 @@ class UserControllerTest {
     @MethodSource("provideInvalidUsers")
     void updateUserById_shouldResponseWithBadRequest_ifUserIsInvalid(UserDto userDto) throws Exception {
         Long userId = 1L;
+
         userDto.setId(userId);
+
         String json = objectMapper.writeValueAsString(userDto);
 
         mockMvc.perform(patch("/users/{id}", userId).contentType("application/json").content(json))
@@ -241,9 +246,7 @@ class UserControllerTest {
 
     private static UserDto initUserDto(Consumer<UserDto> consumer) {
         UserDto userDto = initUserDto();
-
         consumer.accept(userDto);
-
         return userDto;
     }
 
