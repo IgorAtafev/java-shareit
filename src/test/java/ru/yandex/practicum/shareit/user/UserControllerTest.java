@@ -146,7 +146,7 @@ class UserControllerTest {
 
     @ParameterizedTest
     @MethodSource("provideInvalidUsers")
-    void createUser_shouldResponseWithBadRequest_ifUserIsInvalid(UserDto userDto) throws Exception {
+    void createUser_shouldResponseWithBadRequest_ifTheUserIsInvalid(UserDto userDto) throws Exception {
         String json = objectMapper.writeValueAsString(userDto);
 
         mockMvc.perform(post("/users").contentType("application/json").content(json))
@@ -200,7 +200,7 @@ class UserControllerTest {
 
     @ParameterizedTest
     @MethodSource("provideInvalidUsers")
-    void updateUserById_shouldResponseWithBadRequest_ifUserIsInvalid(UserDto userDto) throws Exception {
+    void updateUserById_shouldResponseWithBadRequest_ifTheUserIsInvalid(UserDto userDto) throws Exception {
         Long userId = 1L;
 
         userDto.setId(userId);

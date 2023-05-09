@@ -174,7 +174,7 @@ class BookingControllerTest {
     }
 
     @Test
-    void getBookingById_shouldReturnBookingById_ifUserIsItemOwner() throws Exception {
+    void getBookingById_shouldReturnBookingById_ifTheUserIsTheOwnerOfTheItem() throws Exception {
         Long userId = 1L;
         Long bookingId = 2L;
 
@@ -198,7 +198,7 @@ class BookingControllerTest {
     }
 
     @Test
-    void getBookingById_shouldReturnBookingById_ifUserIsBooker() throws Exception {
+    void getBookingById_shouldReturnBookingById_ifTheUserIsABooker() throws Exception {
         Long userId = 1L;
         Long bookingId = 2L;
 
@@ -286,7 +286,7 @@ class BookingControllerTest {
 
     @ParameterizedTest
     @MethodSource("provideInvalidBookings")
-    void createBooking_shouldResponseWithBadRequest_ifBookingIsInvalid(BookingForCreateDto bookingDto)
+    void createBooking_shouldResponseWithBadRequest_ifTheBookingIsInvalid(BookingForCreateDto bookingDto)
             throws Exception {
         Long userId = 1L;
 

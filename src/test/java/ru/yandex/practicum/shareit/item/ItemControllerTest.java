@@ -114,7 +114,7 @@ class ItemControllerTest {
     }
 
     @Test
-    void getItemById_shouldReturnItemById_ifUserIsOwner() throws Exception {
+    void getItemById_shouldReturnItemById_ifTheUserIsTheOwner() throws Exception {
         Long userId = 1L;
         Long itemId = 2L;
 
@@ -138,7 +138,7 @@ class ItemControllerTest {
     }
 
     @Test
-    void getItemById_shouldReturnItemById_ifUserIsNotOwner() throws Exception {
+    void getItemById_shouldReturnItemById_ifTheUserIsNotTheOwner() throws Exception {
         Long userId = 1L;
         Long itemId = 2L;
 
@@ -218,7 +218,7 @@ class ItemControllerTest {
 
     @ParameterizedTest
     @MethodSource("provideInvalidItems")
-    void createItem_shouldResponseWithBadRequest_ifItemIsInvalid(ItemDto itemDto) throws Exception {
+    void createItem_shouldResponseWithBadRequest_ifTheItemIsInvalid(ItemDto itemDto) throws Exception {
         Long userId = 1L;
 
         String json = objectMapper.writeValueAsString(itemDto);
@@ -303,7 +303,7 @@ class ItemControllerTest {
 
     @ParameterizedTest
     @MethodSource("provideInvalidItems")
-    void updateItemById_shouldResponseWithBadRequest_ifItemIsInvalid(ItemDto itemDto) throws Exception {
+    void updateItemById_shouldResponseWithBadRequest_ifTheItemIsInvalid(ItemDto itemDto) throws Exception {
         Long userId = 1L;
         Long itemId = 2L;
 
@@ -437,7 +437,7 @@ class ItemControllerTest {
 
     @ParameterizedTest
     @MethodSource("provideInvalidComments")
-    void createComment_shouldResponseWithBadRequest_ifCommentIsInvalid(CommentForCreateDto commentDto)
+    void createComment_shouldResponseWithBadRequest_ifTheCommentIsInvalid(CommentForCreateDto commentDto)
             throws Exception {
         Long userId = 1L;
         Long itemId = 2L;
