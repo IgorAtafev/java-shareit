@@ -65,10 +65,11 @@ class BookingServiceImplTest {
     void createBooking_shouldCreateABooking_ifTheBookingStartDateIsGreaterThanTheEndDate() {
         Long userId = 1L;
         Long itemId = 2L;
+        LocalDateTime currentDateTime = LocalDateTime.now();
 
         Booking booking = initBooking();
-        booking.setStart(LocalDateTime.now().plusHours(2));
-        booking.setEnd(LocalDateTime.now().plusHours(1));
+        booking.setStart(currentDateTime.plusHours(2));
+        booking.setEnd(currentDateTime.plusHours(1));
         booking.getItem().setId(itemId);
         booking.getBooker().setId(userId);
 
@@ -82,10 +83,11 @@ class BookingServiceImplTest {
     void createBooking_shouldCreateABooking_ifTheBookingStartDateIsTheSameAsTheEndDate() {
         Long userId = 1L;
         Long itemId = 2L;
+        LocalDateTime currentDateTime = LocalDateTime.now();
 
         Booking booking = initBooking();
-        booking.setStart(LocalDateTime.now().plusHours(1));
-        booking.setEnd(LocalDateTime.now().plusHours(1));
+        booking.setStart(currentDateTime.plusHours(1));
+        booking.setEnd(currentDateTime.plusHours(1));
         booking.getItem().setId(itemId);
         booking.getBooker().setId(userId);
 
