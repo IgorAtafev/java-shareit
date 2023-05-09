@@ -222,9 +222,9 @@ class BookingServiceImplTest {
     }
 
     private static Booking initBooking() {
+        LocalDateTime currentDateTime = LocalDateTime.now();
         Booking booking = new Booking();
 
-        LocalDateTime currentDateTime = LocalDateTime.now();
         booking.setStart(currentDateTime.plusHours(1));
         booking.setEnd(currentDateTime.plusHours(2));
         booking.setItem(new Item());

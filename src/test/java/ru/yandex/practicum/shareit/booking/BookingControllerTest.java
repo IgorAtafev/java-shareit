@@ -366,9 +366,9 @@ class BookingControllerTest {
 
 
     private static BookingForCreateDto initBookingForCreateDto() {
+        LocalDateTime currentDateTime = LocalDateTime.now();
         BookingForCreateDto bookingDto = new BookingForCreateDto();
 
-        LocalDateTime currentDateTime = LocalDateTime.now();
         bookingDto.setStart(currentDateTime.plusHours(1));
         bookingDto.setEnd(currentDateTime.plusHours(2));
 
@@ -380,9 +380,9 @@ class BookingControllerTest {
     }
 
     private static Booking initBooking() {
+        LocalDateTime currentDateTime = LocalDateTime.now();
         Booking booking = new Booking();
 
-        LocalDateTime currentDateTime = LocalDateTime.now();
         booking.setStart(currentDateTime.plusHours(1));
         booking.setEnd(currentDateTime.plusHours(2));
         booking.setItem(new Item());
