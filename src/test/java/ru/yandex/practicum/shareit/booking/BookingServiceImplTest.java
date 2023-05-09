@@ -62,7 +62,7 @@ class BookingServiceImplTest {
     }
 
     @Test
-    void createBooking_shouldCreateABooking_ifBookingDatesAreNotValid() {
+    void createBooking_shouldCreateABooking_ifTheBookingStartDateIsGreaterThanTheEndDate() {
         Long userId = 1L;
         Long itemId = 2L;
 
@@ -75,8 +75,19 @@ class BookingServiceImplTest {
         assertThatExceptionOfType(ValidationException.class)
                 .isThrownBy(() -> bookingService.createBooking(booking));
 
+        verify(bookingRepository, never()).save(booking);
+    }
+
+    @Test
+    void createBooking_shouldCreateABooking_ifTheBookingStartDateIsTheSameAsTheEndDate() {
+        Long userId = 1L;
+        Long itemId = 2L;
+
+        Booking booking = initBooking();
         booking.setStart(LocalDateTime.now().plusHours(1));
         booking.setEnd(LocalDateTime.now().plusHours(1));
+        booking.getItem().setId(itemId);
+        booking.getBooker().setId(userId);
 
         assertThatExceptionOfType(ValidationException.class)
                 .isThrownBy(() -> bookingService.createBooking(booking));
