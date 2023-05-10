@@ -13,7 +13,7 @@ public class UserMapper {
 
     private final UserService userService;
 
-    public UserDto toUserDto(User user) {
+    public UserDto toDto(User user) {
         UserDto userDto = new UserDto();
 
         userDto.setId(user.getId());
@@ -23,9 +23,9 @@ public class UserMapper {
         return userDto;
     }
 
-    public List<UserDto> toUserDto(Collection<User> users) {
+    public List<UserDto> toDtos(Collection<User> users) {
         return users.stream()
-                .map(this::toUserDto)
+                .map(this::toDto)
                 .collect(Collectors.toList());
     }
 

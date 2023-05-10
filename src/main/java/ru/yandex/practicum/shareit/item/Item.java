@@ -27,13 +27,13 @@ public class Item {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
+    @Column
     private String name;
 
-    @Column(length = 1000, nullable = false)
+    @Column
     private String description;
 
-    @Column(name = "is_available", nullable = false)
+    @Column(name = "is_available")
     private Boolean available;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)

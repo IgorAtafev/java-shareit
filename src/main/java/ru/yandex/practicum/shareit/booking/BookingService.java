@@ -74,4 +74,20 @@ public interface BookingService {
      * @return a list of bookings for item ID
      */
     List<Booking> getBookingsByItemId(Long itemId);
+
+    /**
+     * Returns the last booking before the current time
+     *
+     * @param bookings
+     * @return the last booking
+     */
+    Booking getLastBooking(List<Booking> bookings);
+
+    /**
+     * Returns the first booking after the current time
+     *
+     * @param bookings
+     * @return the first booking
+     */
+    Booking getNextBooking(List<Booking> bookings);
 }

@@ -30,12 +30,12 @@ public class UserController {
 
     @GetMapping
     public List<UserDto> getUsers() {
-        return userMapper.toUserDto(userService.getUsers());
+        return userMapper.toDtos(userService.getUsers());
     }
 
     @GetMapping("/{id}")
     public UserDto getUserById(@PathVariable Long id) {
-        return userMapper.toUserDto(userService.getUserById(id));
+        return userMapper.toDto(userService.getUserById(id));
     }
 
     @PostMapping
@@ -43,14 +43,14 @@ public class UserController {
     @ResponseStatus(HttpStatus.CREATED)
     public UserDto createUser(@RequestBody @Valid UserDto userDto) {
         log.info("Request received POST /users: '{}'", userDto);
-        return userMapper.toUserDto(userService.createUser(userMapper.toUser(userDto)));
+        return userMapper.toDto(userService.createUser(userMapper.toUser(userDto)));
     }
 
     @PatchMapping("/{id}")
     public UserDto updateUserById(@PathVariable Long id, @RequestBody @Valid UserDto userDto) {
         log.info("Request received PATCH /users/{}: '{}'", id, userDto);
         userDto.setId(id);
-        return userMapper.toUserDto(userService.updateUser(userMapper.toUser(userDto)));
+        return userMapper.toDto(userService.updateUser(userMapper.toUser(userDto)));
     }
 
     @DeleteMapping("/{id}")

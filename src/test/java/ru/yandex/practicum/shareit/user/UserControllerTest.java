@@ -84,14 +84,14 @@ class UserControllerTest {
         String json = objectMapper.writeValueAsString(expectedUserDto);
 
         when(userService.getUsers()).thenReturn(expectedUser);
-        when(userMapper.toUserDto(expectedUser)).thenReturn(expectedUserDto);
+        when(userMapper.toDtos(expectedUser)).thenReturn(expectedUserDto);
 
         mockMvc.perform(get("/users"))
                 .andExpect(status().isOk())
                 .andExpect(content().json(json));
 
         verify(userService, times(1)).getUsers();
-        verify(userMapper, times(1)).toUserDto(expectedUser);
+        verify(userMapper, times(1)).toDtos(expectedUser);
     }
 
     @Test
@@ -103,14 +103,14 @@ class UserControllerTest {
         String json = objectMapper.writeValueAsString(userDto);
 
         when(userService.getUserById(userId)).thenReturn(user);
-        when(userMapper.toUserDto(user)).thenReturn(userDto);
+        when(userMapper.toDto(user)).thenReturn(userDto);
 
         mockMvc.perform(get("/users/{id}", userId))
                 .andExpect(status().isOk())
                 .andExpect(content().json(json));
 
         verify(userService, times(1)).getUserById(userId);
-        verify(userMapper, times(1)).toUserDto(user);
+        verify(userMapper, times(1)).toDto(user);
     }
 
     @Test
@@ -134,14 +134,14 @@ class UserControllerTest {
 
         when(userMapper.toUser(userDto)).thenReturn(user);
         when(userService.createUser(user)).thenReturn(user);
-        when(userMapper.toUserDto(user)).thenReturn(userDto);
+        when(userMapper.toDto(user)).thenReturn(userDto);
 
         mockMvc.perform(post("/users").contentType("application/json").content(json))
                 .andExpect(status().isCreated());
 
         verify(userMapper, times(1)).toUser(userDto);
         verify(userService, times(1)).createUser(user);
-        verify(userMapper, times(1)).toUserDto(user);
+        verify(userMapper, times(1)).toDto(user);
     }
 
     @ParameterizedTest
@@ -166,14 +166,14 @@ class UserControllerTest {
 
         when(userMapper.toUser(userDto)).thenReturn(user);
         when(userService.updateUser(user)).thenReturn(user);
-        when(userMapper.toUserDto(user)).thenReturn(userDto);
+        when(userMapper.toDto(user)).thenReturn(userDto);
 
         mockMvc.perform(patch("/users/{id}", userId).contentType("application/json").content(json))
                 .andExpect(status().isOk());
 
         verify(userMapper, times(1)).toUser(userDto);
         verify(userService, times(1)).updateUser(user);
-        verify(userMapper, times(1)).toUserDto(user);
+        verify(userMapper, times(1)).toDto(user);
     }
 
     @Test
@@ -195,7 +195,7 @@ class UserControllerTest {
 
         verify(userMapper, times(1)).toUser(userDto);
         verify(userService, times(1)).updateUser(user);
-        verify(userMapper, never()).toUserDto(user);
+        verify(userMapper, never()).toDto(user);
     }
 
     @ParameterizedTest

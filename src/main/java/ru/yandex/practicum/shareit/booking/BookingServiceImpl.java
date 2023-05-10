@@ -128,6 +128,30 @@ public class BookingServiceImpl implements BookingService {
                 Sort.by("start").ascending()));
     }
 
+    @Override
+    public Booking getLastBooking(List<Booking> bookings) {
+        if (bookings == null || bookings.isEmpty()) {
+            return null;
+        }
+
+        return bookings.stream()
+                .filter(booking -> booking.getStart().isBefore(LocalDateTime.now()))
+                .reduce((booking1, booking2) -> booking2)
+                .orElse(null);
+    }
+
+    @Override
+    public Booking getNextBooking(List<Booking> bookings) {
+        if (bookings == null || bookings.isEmpty()) {
+            return null;
+        }
+
+        return bookings.stream()
+                .filter(booking -> booking.getStart().isAfter(LocalDateTime.now()))
+                .findFirst()
+                .orElse(null);
+    }
+
     private BookingListState getBookingListState(String state) {
         try {
             return BookingListState.valueOf(state);

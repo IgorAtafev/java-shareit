@@ -21,20 +21,20 @@ public class ErrorHandler {
     })
     public void handleValidationException(final Exception e, final HttpServletResponse response)
             throws IOException {
-        log.info(e.getMessage(), e);
+        log.error(e.getMessage(), e);
         sendError(response, HttpStatus.BAD_REQUEST.value(), e.getMessage());
     }
 
     @ExceptionHandler
     public void handleNotFoundException(final NotFoundException e, final HttpServletResponse response)
             throws IOException {
-        log.info(e.getMessage(), e);
+        log.error(e.getMessage(), e);
         sendError(response, HttpStatus.NOT_FOUND.value(), e.getMessage());
     }
 
     @ExceptionHandler
     public void handleThrowable(final Throwable e, final HttpServletResponse response) throws IOException {
-        log.info(e.getMessage(), e);
+        log.error(e.getMessage(), e);
         sendError(response, HttpStatus.INTERNAL_SERVER_ERROR.value(), e.getMessage());
     }
 

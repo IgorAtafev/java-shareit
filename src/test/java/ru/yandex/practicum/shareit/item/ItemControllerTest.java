@@ -91,14 +91,14 @@ class ItemControllerTest {
         String json = objectMapper.writeValueAsString(expectedItemDto);
 
         when(itemService.getItemsByUserId(userId)).thenReturn(expectedItem);
-        when(itemMapper.toItemWithBookingsAndCommentsDto(expectedItem)).thenReturn(expectedItemDto);
+        when(itemMapper.itemWithBookingsAndCommentsToDtos(expectedItem)).thenReturn(expectedItemDto);
 
         mockMvc.perform(get("/items").header("X-Sharer-User-Id", userId))
                 .andExpect(status().isOk())
                 .andExpect(content().json(json));
 
         verify(itemService, times(1)).getItemsByUserId(userId);
-        verify(itemMapper, times(1)).toItemWithBookingsAndCommentsDto(expectedItem);
+        verify(itemMapper, times(1)).itemWithBookingsAndCommentsToDtos(expectedItem);
     }
 
     @Test
@@ -127,14 +127,14 @@ class ItemControllerTest {
         String json = objectMapper.writeValueAsString(itemDto);
 
         when(itemService.getItemById(itemId)).thenReturn(item);
-        when(itemMapper.toItemWithBookingsAndCommentsDto(item)).thenReturn(itemDto);
+        when(itemMapper.itemWithBookingsAndCommentsToDto(item)).thenReturn(itemDto);
 
         mockMvc.perform(get("/items/{id}", itemId).header("X-Sharer-User-Id", userId))
                 .andExpect(status().isOk())
                 .andExpect(content().json(json));
 
         verify(itemService, times(1)).getItemById(itemId);
-        verify(itemMapper, times(1)).toItemWithBookingsAndCommentsDto(item);
+        verify(itemMapper, times(1)).itemWithBookingsAndCommentsToDto(item);
     }
 
     @Test
@@ -150,14 +150,14 @@ class ItemControllerTest {
         String json = objectMapper.writeValueAsString(itemDto);
 
         when(itemService.getItemById(itemId)).thenReturn(item);
-        when(itemMapper.toItemWithCommentsDto(item)).thenReturn(itemDto);
+        when(itemMapper.itemWithCommentsToDto(item)).thenReturn(itemDto);
 
         mockMvc.perform(get("/items/{id}", itemId).header("X-Sharer-User-Id", userId))
                 .andExpect(status().isOk())
                 .andExpect(content().json(json));
 
         verify(itemService, times(1)).getItemById(itemId);
-        verify(itemMapper, times(1)).toItemWithCommentsDto(item);
+        verify(itemMapper, times(1)).itemWithCommentsToDto(item);
     }
 
     @Test
@@ -184,7 +184,7 @@ class ItemControllerTest {
 
         when(itemMapper.toItem(itemDto, userId)).thenReturn(item);
         when(itemService.createItem(item)).thenReturn(item);
-        when(itemMapper.toItemDto(item)).thenReturn(itemDto);
+        when(itemMapper.toDto(item)).thenReturn(itemDto);
 
         mockMvc.perform(post("/items").header("X-Sharer-User-Id", userId)
                         .contentType("application/json").content(json))
@@ -192,7 +192,7 @@ class ItemControllerTest {
 
         verify(itemMapper, times(1)).toItem(itemDto, userId);
         verify(itemService, times(1)).createItem(item);
-        verify(itemMapper, times(1)).toItemDto(item);
+        verify(itemMapper, times(1)).toDto(item);
     }
 
     @Test
@@ -213,7 +213,7 @@ class ItemControllerTest {
 
         verify(itemMapper, times(1)).toItem(itemDto, userId);
         verify(itemService, times(1)).createItem(item);
-        verify(itemMapper, never()).toItemDto(item);
+        verify(itemMapper, never()).toDto(item);
     }
 
     @ParameterizedTest
@@ -242,7 +242,7 @@ class ItemControllerTest {
 
         when(itemMapper.toItem(itemDto, userId)).thenReturn(item);
         when(itemService.updateItem(item)).thenReturn(item);
-        when(itemMapper.toItemDto(item)).thenReturn(itemDto);
+        when(itemMapper.toDto(item)).thenReturn(itemDto);
 
         mockMvc.perform(patch("/items/{id}", itemId).header("X-Sharer-User-Id", userId)
                         .contentType("application/json").content(json))
@@ -250,7 +250,7 @@ class ItemControllerTest {
 
         verify(itemMapper, times(1)).toItem(itemDto, userId);
         verify(itemService, times(1)).updateItem(item);
-        verify(itemMapper, times(1)).toItemDto(item);
+        verify(itemMapper, times(1)).toDto(item);
     }
 
     @Test
@@ -274,7 +274,7 @@ class ItemControllerTest {
 
         verify(itemMapper, times(1)).toItem(itemDto, userId);
         verify(itemService, times(1)).updateItem(item);
-        verify(itemMapper, never()).toItemDto(item);
+        verify(itemMapper, never()).toDto(item);
     }
 
     @Test
@@ -298,7 +298,7 @@ class ItemControllerTest {
 
         verify(itemMapper, times(1)).toItem(itemDto, userId);
         verify(itemService, times(1)).updateItem(item);
-        verify(itemMapper, never()).toItemDto(item);
+        verify(itemMapper, never()).toDto(item);
     }
 
     @ParameterizedTest
@@ -355,16 +355,16 @@ class ItemControllerTest {
         String json = objectMapper.writeValueAsString(expectedItemDto);
 
         when(itemService.searchItems(text)).thenReturn(expectedItem);
-        when(itemMapper.toItemDto(item1)).thenReturn(itemDto1);
-        when(itemMapper.toItemDto(item2)).thenReturn(itemDto2);
+        when(itemMapper.toDto(item1)).thenReturn(itemDto1);
+        when(itemMapper.toDto(item2)).thenReturn(itemDto2);
 
         mockMvc.perform(get("/items/search?text={text}", text))
                 .andExpect(status().isOk())
                 .andExpect(content().json(json));
 
         verify(itemService, times(1)).searchItems(text);
-        verify(itemMapper, times(1)).toItemDto(item1);
-        verify(itemMapper, times(1)).toItemDto(item2);
+        verify(itemMapper, times(1)).toDto(item1);
+        verify(itemMapper, times(1)).toDto(item2);
     }
 
     @Test
@@ -380,7 +380,7 @@ class ItemControllerTest {
 
         when(commentMapper.toComment(commentForCreateDto, itemId, userId)).thenReturn(comment);
         when(itemService.createComment(comment)).thenReturn(comment);
-        when(commentMapper.toCommentDto(comment)).thenReturn(commentForResponseDto);
+        when(commentMapper.toDto(comment)).thenReturn(commentForResponseDto);
 
         mockMvc.perform(post("/items/{id}/comment", itemId).header("X-Sharer-User-Id", userId)
                         .contentType("application/json").content(json))
@@ -388,7 +388,7 @@ class ItemControllerTest {
 
         verify(commentMapper, times(1)).toComment(commentForCreateDto, itemId, userId);
         verify(itemService, times(1)).createComment(comment);
-        verify(commentMapper, times(1)).toCommentDto(comment);
+        verify(commentMapper, times(1)).toDto(comment);
     }
 
     @Test
@@ -410,7 +410,7 @@ class ItemControllerTest {
 
         verify(commentMapper, times(1)).toComment(commentForCreateDto, itemId, userId);
         verify(itemService, times(1)).createComment(comment);
-        verify(commentMapper, never()).toCommentDto(comment);
+        verify(commentMapper, never()).toDto(comment);
     }
 
     @Test
@@ -432,7 +432,7 @@ class ItemControllerTest {
 
         verify(commentMapper, times(1)).toComment(commentForCreateDto, itemId, userId);
         verify(itemService, times(1)).createComment(comment);
-        verify(commentMapper, never()).toCommentDto(comment);
+        verify(commentMapper, never()).toDto(comment);
     }
 
     @ParameterizedTest

@@ -26,53 +26,55 @@ import java.util.List;
 @Validated
 public class BookingController {
 
+    private static final String USER_ID_REQUEST_HEADER = "X-Sharer-User-Id";
+
     private final BookingService bookingService;
     private final BookingMapper bookingMapper;
 
     @GetMapping
     public List<BookingForResponseDto> getBookingsByUserId(
-            @RequestHeader("X-Sharer-User-Id") Long userId,
+            @RequestHeader(USER_ID_REQUEST_HEADER) Long userId,
             @RequestParam(defaultValue = "ALL") String state
     ) {
-        return bookingMapper.toBookingDto(bookingService.getBookingsByUserId(userId, state));
+        return bookingMapper.toDtos(bookingService.getBookingsByUserId(userId, state));
     }
 
     @GetMapping("/owner")
     public List<BookingForResponseDto> getBookingsByItemOwnerId(
-            @RequestHeader("X-Sharer-User-Id") Long userId,
+            @RequestHeader(USER_ID_REQUEST_HEADER) Long userId,
             @RequestParam(defaultValue = "ALL") String state
     ) {
-        return bookingMapper.toBookingDto(bookingService.getBookingsByItemOwnerId(userId, state));
+        return bookingMapper.toDtos(bookingService.getBookingsByItemOwnerId(userId, state));
     }
 
     @GetMapping("/{id}")
     public BookingForResponseDto getBookingById(
-            @RequestHeader("X-Sharer-User-Id") Long userId,
+            @RequestHeader(USER_ID_REQUEST_HEADER) Long userId,
             @PathVariable Long id
     ) {
-        return bookingMapper.toBookingDto(bookingService.getBookingById(id, userId));
+        return bookingMapper.toDto(bookingService.getBookingById(id, userId));
     }
 
     @PostMapping
     @Validated(ValidationOnCreate.class)
     @ResponseStatus(HttpStatus.CREATED)
     public BookingForResponseDto createBooking(
-            @RequestHeader("X-Sharer-User-Id") Long userId,
+            @RequestHeader(USER_ID_REQUEST_HEADER) Long userId,
             @RequestBody @Valid BookingForCreateDto bookingDto
     ) {
         log.info("Request received POST /bookings: '{}', userId: {}", bookingDto, userId);
-        return bookingMapper.toBookingDto(
+        return bookingMapper.toDto(
                 bookingService.createBooking(bookingMapper.toBooking(bookingDto, userId))
         );
     }
 
     @PatchMapping("/{id}")
     public BookingForResponseDto approveBookingById(
-            @RequestHeader("X-Sharer-User-Id") Long userId,
+            @RequestHeader(USER_ID_REQUEST_HEADER) Long userId,
             @PathVariable Long id,
             @RequestParam Boolean approved
     ) {
         log.info("Request received PATCH /bookings/{}: '{}', userId: {}", id, approved, userId);
-        return bookingMapper.toBookingDto(bookingService.approveBookingById(id, approved, userId));
+        return bookingMapper.toDto(bookingService.approveBookingById(id, approved, userId));
     }
 }

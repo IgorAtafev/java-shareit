@@ -22,7 +22,7 @@ public class ItemMapper {
     private final BookingForItemsMapper bookingForItemsMapper;
     private final CommentMapper commentMapper;
 
-    public ItemDto toItemDto(Item item) {
+    public ItemDto toDto(Item item) {
         ItemDto itemDto = new ItemDto();
 
         itemDto.setId(item.getId());
@@ -33,14 +33,14 @@ public class ItemMapper {
         return itemDto;
     }
 
-    public List<ItemDto> toItemDto(Collection<Item> items) {
+    public List<ItemDto> toDtos(Collection<Item> items) {
         return  items.stream()
-                .map(this::toItemDto)
+                .map(this::toDto)
                 .collect(Collectors.toList());
     }
 
-    public ItemDto toItemWithBookingsAndCommentsDto(Item item) {
-        ItemDto itemDto = toItemDto(item);
+    public ItemDto itemWithBookingsAndCommentsToDto(Item item) {
+        ItemDto itemDto = toDto(item);
         List<Booking> bookings = bookingService.getBookingsByItemId(itemDto.getId());
         List<Comment> comments = itemService.getCommentsByItemId(itemDto.getId());
 
@@ -50,8 +50,8 @@ public class ItemMapper {
         return itemDto;
     }
 
-    public List<ItemDto> toItemWithBookingsAndCommentsDto(Collection<Item> items) {
-        List<ItemDto> itemsDto = toItemDto(items);
+    public List<ItemDto> itemWithBookingsAndCommentsToDtos(Collection<Item> items) {
+        List<ItemDto> itemsDto = toDtos(items);
 
         if (itemsDto.isEmpty()) {
             return itemsDto;
@@ -72,8 +72,8 @@ public class ItemMapper {
         return itemsDto;
     }
 
-    public ItemDto toItemWithCommentsDto(Item item) {
-        ItemDto itemDto = toItemDto(item);
+    public ItemDto itemWithCommentsToDto(Item item) {
+        ItemDto itemDto = toDto(item);
         List<Comment> comments = itemService.getCommentsByItemId(itemDto.getId());
 
         setComments(itemDto, comments);
@@ -108,13 +108,13 @@ public class ItemMapper {
     }
 
     private void setLastAndNextBookings(ItemDto itemDto, List<Booking> bookings) {
-       itemDto.setLastBooking(bookingForItemsMapper.getLastBooking(bookings));
-       itemDto.setNextBooking(bookingForItemsMapper.getNextBooking(bookings));
+        itemDto.setLastBooking(bookingForItemsMapper.toDto(bookingService.getLastBooking(bookings)));
+        itemDto.setNextBooking(bookingForItemsMapper.toDto(bookingService.getNextBooking(bookings)));
     }
 
     private void setComments(ItemDto itemDto, List<Comment> comments) {
         if (comments != null) {
-            itemDto.setComments(commentMapper.toCommentDto(comments));
+            itemDto.setComments(commentMapper.toDtos(comments));
         }
     }
 }

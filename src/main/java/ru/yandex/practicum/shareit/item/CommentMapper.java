@@ -15,7 +15,7 @@ public class CommentMapper {
     private final ItemService itemService;
     private final UserService userService;
 
-    public CommentForResponseDto toCommentDto(Comment comment) {
+    public CommentForResponseDto toDto(Comment comment) {
         CommentForResponseDto commentDto = new CommentForResponseDto();
 
         commentDto.setId(comment.getId());
@@ -26,9 +26,9 @@ public class CommentMapper {
         return commentDto;
     }
 
-    public List<CommentForResponseDto> toCommentDto(Collection<Comment> comments) {
+    public List<CommentForResponseDto> toDtos(Collection<Comment> comments) {
         return  comments.stream()
-                .map(this::toCommentDto)
+                .map(this::toDto)
                 .collect(Collectors.toList());
     }
 

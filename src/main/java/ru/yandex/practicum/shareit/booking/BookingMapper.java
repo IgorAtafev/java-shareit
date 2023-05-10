@@ -19,24 +19,24 @@ public class BookingMapper {
     private final ItemService itemService;
     private final UserService userService;
 
-    public BookingForResponseDto toBookingDto(Booking booking) {
+    public BookingForResponseDto toDto(Booking booking) {
         BookingForResponseDto bookingDto = new BookingForResponseDto();
 
         bookingDto.setId(booking.getId());
         bookingDto.setStart(booking.getStart());
         bookingDto.setEnd(booking.getEnd());
-        bookingDto.setItem(itemMapper.toItemDto(booking.getItem()));
-        bookingDto.setBooker(userMapper.toUserDto(booking.getBooker()));
+        bookingDto.setItem(itemMapper.toDto(booking.getItem()));
+        bookingDto.setBooker(userMapper.toDto(booking.getBooker()));
         bookingDto.setStatus(booking.getStatus());
 
         return bookingDto;
     }
 
-    public List<BookingForResponseDto> toBookingDto(Iterable<Booking> bookings) {
+    public List<BookingForResponseDto> toDtos(Iterable<Booking> bookings) {
         List<BookingForResponseDto> bookingsDto = new ArrayList<>();
 
         for (Booking booking : bookings) {
-            bookingsDto.add(toBookingDto(booking));
+            bookingsDto.add(toDto(booking));
         }
 
         return bookingsDto;

@@ -92,14 +92,14 @@ class BookingControllerTest {
         String json = objectMapper.writeValueAsString(expectedBookingDto);
 
         when(bookingService.getBookingsByUserId(userId, state)).thenReturn(expectedBooking);
-        when(bookingMapper.toBookingDto(expectedBooking)).thenReturn(expectedBookingDto);
+        when(bookingMapper.toDtos(expectedBooking)).thenReturn(expectedBookingDto);
 
         mockMvc.perform(get("/bookings?state={state}", state).header("X-Sharer-User-Id", userId))
                 .andExpect(status().isOk())
                 .andExpect(content().json(json));
 
         verify(bookingService, times(1)).getBookingsByUserId(userId, state);
-        verify(bookingMapper, times(1)).toBookingDto(expectedBooking);
+        verify(bookingMapper, times(1)).toDtos(expectedBooking);
     }
 
     @Test
@@ -150,14 +150,14 @@ class BookingControllerTest {
         String json = objectMapper.writeValueAsString(expectedBookingDto);
 
         when(bookingService.getBookingsByItemOwnerId(userId, state)).thenReturn(expectedBooking);
-        when(bookingMapper.toBookingDto(expectedBooking)).thenReturn(expectedBookingDto);
+        when(bookingMapper.toDtos(expectedBooking)).thenReturn(expectedBookingDto);
 
         mockMvc.perform(get("/bookings/owner?state={state}", state).header("X-Sharer-User-Id", userId))
                 .andExpect(status().isOk())
                 .andExpect(content().json(json));
 
         verify(bookingService, times(1)).getBookingsByItemOwnerId(userId, state);
-        verify(bookingMapper, times(1)).toBookingDto(expectedBooking);
+        verify(bookingMapper, times(1)).toDtos(expectedBooking);
     }
 
     @Test
@@ -187,14 +187,14 @@ class BookingControllerTest {
         String json = objectMapper.writeValueAsString(bookingDto);
 
         when(bookingService.getBookingById(bookingId, userId)).thenReturn(booking);
-        when(bookingMapper.toBookingDto(booking)).thenReturn(bookingDto);
+        when(bookingMapper.toDto(booking)).thenReturn(bookingDto);
 
         mockMvc.perform(get("/bookings/{id}", bookingId).header("X-Sharer-User-Id", userId))
                 .andExpect(status().isOk())
                 .andExpect(content().json(json));
 
         verify(bookingService, times(1)).getBookingById(bookingId, userId);
-        verify(bookingMapper, times(1)).toBookingDto(booking);
+        verify(bookingMapper, times(1)).toDto(booking);
     }
 
     @Test
@@ -211,14 +211,14 @@ class BookingControllerTest {
         String json = objectMapper.writeValueAsString(bookingDto);
 
         when(bookingService.getBookingById(bookingId, userId)).thenReturn(booking);
-        when(bookingMapper.toBookingDto(booking)).thenReturn(bookingDto);
+        when(bookingMapper.toDto(booking)).thenReturn(bookingDto);
 
         mockMvc.perform(get("/bookings/{id}", bookingId).header("X-Sharer-User-Id", userId))
                 .andExpect(status().isOk())
                 .andExpect(content().json(json));
 
         verify(bookingService, times(1)).getBookingById(bookingId, userId);
-        verify(bookingMapper, times(1)).toBookingDto(booking);
+        verify(bookingMapper, times(1)).toDto(booking);
     }
 
     @Test
@@ -249,7 +249,7 @@ class BookingControllerTest {
 
         when(bookingMapper.toBooking(bookingForCreateDto, userId)).thenReturn(booking);
         when(bookingService.createBooking(booking)).thenReturn(booking);
-        when(bookingMapper.toBookingDto(booking)).thenReturn(bookingForResponseDto);
+        when(bookingMapper.toDto(booking)).thenReturn(bookingForResponseDto);
 
         mockMvc.perform(post("/bookings").header("X-Sharer-User-Id", userId)
                         .contentType("application/json").content(json))
@@ -257,7 +257,7 @@ class BookingControllerTest {
 
         verify(bookingMapper, times(1)).toBooking(bookingForCreateDto, userId);
         verify(bookingService, times(1)).createBooking(booking);
-        verify(bookingMapper, times(1)).toBookingDto(booking);
+        verify(bookingMapper, times(1)).toDto(booking);
     }
 
     @Test
@@ -281,7 +281,7 @@ class BookingControllerTest {
 
         verify(bookingMapper, times(1)).toBooking(bookingDto, userId);
         verify(bookingService, times(1)).createBooking(booking);
-        verify(bookingMapper, never()).toBookingDto(booking);
+        verify(bookingMapper, never()).toDto(booking);
     }
 
     @ParameterizedTest
@@ -311,7 +311,7 @@ class BookingControllerTest {
         String json = objectMapper.writeValueAsString(bookingDto);
 
         when(bookingService.approveBookingById(bookingId, approved, userId)).thenReturn(booking);
-        when(bookingMapper.toBookingDto(booking)).thenReturn(bookingDto);
+        when(bookingMapper.toDto(booking)).thenReturn(bookingDto);
 
         mockMvc.perform(patch("/bookings/{id}?approved={approved}", bookingId, approved)
                         .header("X-Sharer-User-Id", userId))
@@ -319,7 +319,7 @@ class BookingControllerTest {
                 .andExpect(content().json(json));
 
         verify(bookingService, times(1)).approveBookingById(bookingId, approved, userId);
-        verify(bookingMapper, times(1)).toBookingDto(booking);
+        verify(bookingMapper, times(1)).toDto(booking);
     }
 
     @Test
@@ -363,7 +363,6 @@ class BookingControllerTest {
 
         return user;
     }
-
 
     private static BookingForCreateDto initBookingForCreateDto() {
         LocalDateTime currentDateTime = LocalDateTime.now();
