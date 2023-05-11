@@ -1,16 +1,13 @@
-package ru.yandex.practicum.shareit.booking;
+package ru.yandex.practicum.shareit.item;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
-import ru.yandex.practicum.shareit.item.Item;
 import ru.yandex.practicum.shareit.user.User;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -20,30 +17,26 @@ import javax.persistence.Table;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "bookings")
+@Table(name = "comments")
 @Getter
 @Setter
 @EqualsAndHashCode
 @ToString
-public class Booking {
+public class Comment {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "start_date")
-    private LocalDateTime start;
-
-    @Column(name = "end_date")
-    private LocalDateTime end;
+    @Column
+    private String text;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     private Item item;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    private User booker;
+    private User author;
 
-    @Enumerated(EnumType.STRING)
     @Column
-    private BookingStatus status;
+    private LocalDateTime created;
 }

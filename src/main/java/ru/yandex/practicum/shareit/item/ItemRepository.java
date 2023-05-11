@@ -1,41 +1,19 @@
 package ru.yandex.practicum.shareit.item;
 
-import java.util.Collection;
-import java.util.Optional;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 
-public interface ItemRepository {
+import java.util.Collection;
+
+public interface ItemRepository extends JpaRepository<Item, Long> {
 
     /**
      * Returns a list of user items
      *
-     * @param userId
-     * @return list of user items
+     * @param ownerId
+     * @return list of items
      */
-    Collection<Item> getItemsByUserId(Long userId);
-
-    /**
-     * Returns item by id
-     *
-     * @param id
-     * @return item or null if there was no one
-     */
-    Optional<Item> getItemById(Long id);
-
-    /**
-     * Creates a new item
-     *
-     * @param item
-     * @return new item
-     */
-    Item createItem(Item item);
-
-    /**
-     * Updates the item
-     *
-     * @param item
-     * @return updated item
-     */
-    Item updateItem(Item item);
+    Collection<Item> findByOwnerIdOrderById(Long ownerId);
 
     /**
      * Returns a list of found items available for rent
@@ -44,21 +22,27 @@ public interface ItemRepository {
      * @param text
      * @return list of items
      */
-    Collection<Item> searchItems(String text);
-
-    /**
-     * Removes user items
-     *
-     * @param userId
-     */
-    void removeItemsByUserId(Long userId);
+    @Query("select i " +
+            "from Item i " +
+            "where i.available = true " +
+            "and (upper(i.name) like upper(concat('%', ?1,'%')) " +
+            "or upper(i.description) like upper(concat('%', ?1,'%'))) " +
+            "order by i.id")
+    Collection<Item> searchItemsByText(String text);
 
     /**
      * Checks for the existence of item by id and user id
      *
      * @param id
-     * @param userId
+     * @param ownerId
      * @return true or false
      */
-    boolean itemByIdAndUserIdExists(Long id, Long userId);
+    boolean existsByIdAndOwnerId(Long id, Long ownerId);
+
+    /**
+     * Removes user items
+     *
+     * @param ownerId
+     */
+    void deleteByOwnerId(Long ownerId);
 }

@@ -2,59 +2,58 @@ package ru.yandex.practicum.shareit.user;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import ru.yandex.practicum.shareit.booking.BookingRepository;
+import ru.yandex.practicum.shareit.item.CommentRepository;
 import ru.yandex.practicum.shareit.item.ItemRepository;
-import ru.yandex.practicum.shareit.validator.ConflictException;
 import ru.yandex.practicum.shareit.validator.NotFoundException;
 
 import java.util.Collection;
 
 @Service
+@Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final ItemRepository itemRepository;
+    private final BookingRepository bookingRepository;
+    private final CommentRepository commentRepository;
 
     @Override
     public Collection<User> getUsers() {
-        return userRepository.getUsers();
+        return userRepository.findAll();
     }
 
     @Override
     public User getUserById(Long id) {
-        return userRepository.getUserById(id).orElseThrow(
+        return userRepository.findById(id).orElseThrow(
                 () -> new NotFoundException(String.format("User with id %d does not exist", id)));
     }
 
+    @Transactional
     @Override
     public User createUser(User user) {
-        if (userRepository.userByEmailExists(user.getEmail(), user.getId())) {
-            throw new ConflictException(String.format("User with email %s exists", user.getEmail()));
-        }
-
-        return userRepository.createUser(user);
+        return userRepository.save(user);
     }
 
+    @Transactional
     @Override
     public User updateUser(User user) {
-        if (!userRepository.userByIdExists(user.getId())) {
-            throw new NotFoundException(String.format("User with id %d does not exist", user.getId()));
-        }
-
-        if (userRepository.userByEmailExists(user.getEmail(), user.getId())) {
-            throw new ConflictException(String.format("User with email %s exists", user.getEmail()));
-        }
-
-        return userRepository.updateUser(user);
+        return userRepository.save(user);
     }
 
+    @Transactional
     @Override
     public void removeUserById(Long id) {
-        if (!userRepository.userByIdExists(id)) {
+        if (!userRepository.existsById(id)) {
             throw new NotFoundException(String.format("User with id %d does not exist", id));
         }
 
-        itemRepository.removeItemsByUserId(id);
-        userRepository.removeUserById(id);
+        bookingRepository.deleteByItemOwnerId(id);
+        itemRepository.deleteByOwnerId(id);
+        bookingRepository.deleteByBookerId(id);
+        commentRepository.deleteByAuthorId(id);
+        userRepository.deleteById(id);
     }
 }

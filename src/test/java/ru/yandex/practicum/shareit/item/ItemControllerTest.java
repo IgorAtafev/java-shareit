@@ -12,9 +12,12 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import ru.yandex.practicum.shareit.user.User;
 import ru.yandex.practicum.shareit.validator.ErrorHandler;
 import ru.yandex.practicum.shareit.validator.NotFoundException;
+import ru.yandex.practicum.shareit.validator.ValidationException;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
@@ -42,6 +45,9 @@ class ItemControllerTest {
     @Mock
     private ItemMapper itemMapper;
 
+    @Mock
+    private CommentMapper commentMapper;
+
     @InjectMocks
     private ItemController itemController;
 
@@ -68,6 +74,7 @@ class ItemControllerTest {
         Long userId = 1L;
         Long itemId1 = 1L;
         Long itemId2 = 2L;
+
         ItemDto itemDto1 = initItemDto();
         ItemDto itemDto2 = initItemDto();
         Item item1 = initItem();
@@ -84,16 +91,14 @@ class ItemControllerTest {
         String json = objectMapper.writeValueAsString(expectedItemDto);
 
         when(itemService.getItemsByUserId(userId)).thenReturn(expectedItem);
-        when(itemMapper.toItemDto(item1)).thenReturn(itemDto1);
-        when(itemMapper.toItemDto(item2)).thenReturn(itemDto2);
+        when(itemMapper.itemWithBookingsAndCommentsToDtos(expectedItem)).thenReturn(expectedItemDto);
 
         mockMvc.perform(get("/items").header("X-Sharer-User-Id", userId))
                 .andExpect(status().isOk())
                 .andExpect(content().json(json));
 
         verify(itemService, times(1)).getItemsByUserId(userId);
-        verify(itemMapper, times(1)).toItemDto(item1);
-        verify(itemMapper, times(1)).toItemDto(item2);
+        verify(itemMapper, times(1)).itemWithBookingsAndCommentsToDtos(expectedItem);
     }
 
     @Test
@@ -109,31 +114,60 @@ class ItemControllerTest {
     }
 
     @Test
-    void getItemById_shouldReturnItemById() throws Exception {
-        Long itemId = 1L;
+    void getItemById_shouldReturnItemById_ifTheUserIsTheOwner() throws Exception {
+        Long userId = 1L;
+        Long itemId = 2L;
+
+        User user = initUser();
+        user.setId(userId);
         ItemDto itemDto = initItemDto();
         Item item = initItem();
+        item.setOwner(user);
 
         String json = objectMapper.writeValueAsString(itemDto);
 
         when(itemService.getItemById(itemId)).thenReturn(item);
-        when(itemMapper.toItemDto(item)).thenReturn(itemDto);
+        when(itemMapper.itemWithBookingsAndCommentsToDto(item)).thenReturn(itemDto);
 
-        mockMvc.perform(get("/items/{id}", itemId))
+        mockMvc.perform(get("/items/{id}", itemId).header("X-Sharer-User-Id", userId))
                 .andExpect(status().isOk())
                 .andExpect(content().json(json));
 
         verify(itemService, times(1)).getItemById(itemId);
-        verify(itemMapper, times(1)).toItemDto(item);
+        verify(itemMapper, times(1)).itemWithBookingsAndCommentsToDto(item);
+    }
+
+    @Test
+    void getItemById_shouldReturnItemById_ifTheUserIsNotTheOwner() throws Exception {
+        Long userId = 1L;
+        Long itemId = 2L;
+
+        User user = initUser();
+        ItemDto itemDto = initItemDto();
+        Item item = initItem();
+        item.setOwner(user);
+
+        String json = objectMapper.writeValueAsString(itemDto);
+
+        when(itemService.getItemById(itemId)).thenReturn(item);
+        when(itemMapper.itemWithCommentsToDto(item)).thenReturn(itemDto);
+
+        mockMvc.perform(get("/items/{id}", itemId).header("X-Sharer-User-Id", userId))
+                .andExpect(status().isOk())
+                .andExpect(content().json(json));
+
+        verify(itemService, times(1)).getItemById(itemId);
+        verify(itemMapper, times(1)).itemWithCommentsToDto(item);
     }
 
     @Test
     void getItemById_shouldResponseWithNotFound_ifItemDoesNotExist() throws Exception {
-        Long itemId = 1L;
+        Long userId = 1L;
+        Long itemId = 2L;
 
         when(itemService.getItemById(itemId)).thenThrow(NotFoundException.class);
 
-        mockMvc.perform(get("/items/{id}", itemId))
+        mockMvc.perform(get("/items/{id}", itemId).header("X-Sharer-User-Id", userId))
                 .andExpect(status().isNotFound());
 
         verify(itemService, times(1)).getItemById(itemId);
@@ -142,6 +176,7 @@ class ItemControllerTest {
     @Test
     void createItem_shouldResponseWithOk() throws Exception {
         Long userId = 1L;
+
         ItemDto itemDto = initItemDto();
         Item item = initItem();
 
@@ -149,7 +184,7 @@ class ItemControllerTest {
 
         when(itemMapper.toItem(itemDto, userId)).thenReturn(item);
         when(itemService.createItem(item)).thenReturn(item);
-        when(itemMapper.toItemDto(item)).thenReturn(itemDto);
+        when(itemMapper.toDto(item)).thenReturn(itemDto);
 
         mockMvc.perform(post("/items").header("X-Sharer-User-Id", userId)
                         .contentType("application/json").content(json))
@@ -157,12 +192,13 @@ class ItemControllerTest {
 
         verify(itemMapper, times(1)).toItem(itemDto, userId);
         verify(itemService, times(1)).createItem(item);
-        verify(itemMapper, times(1)).toItemDto(item);
+        verify(itemMapper, times(1)).toDto(item);
     }
 
     @Test
     void createItem_shouldResponseWithNotFound_ifUserDoesNotExist() throws Exception {
         Long userId = 1L;
+
         ItemDto itemDto = initItemDto();
         Item item = initItem();
 
@@ -177,13 +213,14 @@ class ItemControllerTest {
 
         verify(itemMapper, times(1)).toItem(itemDto, userId);
         verify(itemService, times(1)).createItem(item);
-        verify(itemMapper, never()).toItemDto(item);
+        verify(itemMapper, never()).toDto(item);
     }
 
     @ParameterizedTest
     @MethodSource("provideInvalidItems")
-    void createItem_shouldResponseWithBadRequest_ifItemIsInvalid(ItemDto itemDto) throws Exception {
+    void createItem_shouldResponseWithBadRequest_ifTheItemIsInvalid(ItemDto itemDto) throws Exception {
         Long userId = 1L;
+
         String json = objectMapper.writeValueAsString(itemDto);
 
         mockMvc.perform(post("/items").header("X-Sharer-User-Id", userId)
@@ -195,6 +232,7 @@ class ItemControllerTest {
     void updateItemById_shouldResponseWithOk() throws Exception {
         Long userId = 1L;
         Long itemId = 2L;
+
         ItemDto itemDto = initItemDto();
         Item item = initItem();
         itemDto.setId(itemId);
@@ -204,7 +242,7 @@ class ItemControllerTest {
 
         when(itemMapper.toItem(itemDto, userId)).thenReturn(item);
         when(itemService.updateItem(item)).thenReturn(item);
-        when(itemMapper.toItemDto(item)).thenReturn(itemDto);
+        when(itemMapper.toDto(item)).thenReturn(itemDto);
 
         mockMvc.perform(patch("/items/{id}", itemId).header("X-Sharer-User-Id", userId)
                         .contentType("application/json").content(json))
@@ -212,13 +250,14 @@ class ItemControllerTest {
 
         verify(itemMapper, times(1)).toItem(itemDto, userId);
         verify(itemService, times(1)).updateItem(item);
-        verify(itemMapper, times(1)).toItemDto(item);
+        verify(itemMapper, times(1)).toDto(item);
     }
 
     @Test
     void updateItemById_shouldResponseWithNotFound_ifUserDoesNotExist() throws Exception {
         Long userId = 1L;
         Long itemId = 2L;
+
         ItemDto itemDto = initItemDto();
         Item item = initItem();
         itemDto.setId(itemId);
@@ -235,13 +274,14 @@ class ItemControllerTest {
 
         verify(itemMapper, times(1)).toItem(itemDto, userId);
         verify(itemService, times(1)).updateItem(item);
-        verify(itemMapper, never()).toItemDto(item);
+        verify(itemMapper, never()).toDto(item);
     }
 
     @Test
     void updateItemById_shouldResponseWithNotFound_ifItemDoesNotExist() throws Exception {
         Long itemId = 1L;
         Long userId = 1L;
+
         ItemDto itemDto = initItemDto();
         Item item = initItem();
         itemDto.setId(itemId);
@@ -258,14 +298,15 @@ class ItemControllerTest {
 
         verify(itemMapper, times(1)).toItem(itemDto, userId);
         verify(itemService, times(1)).updateItem(item);
-        verify(itemMapper, never()).toItemDto(item);
+        verify(itemMapper, never()).toDto(item);
     }
 
     @ParameterizedTest
     @MethodSource("provideInvalidItems")
-    void updateItemById_shouldResponseWithBadRequest_ifItemIsInvalid(ItemDto itemDto) throws Exception {
+    void updateItemById_shouldResponseWithBadRequest_ifTheItemIsInvalid(ItemDto itemDto) throws Exception {
         Long userId = 1L;
         Long itemId = 2L;
+
         itemDto.setId(itemId);
 
         String json = objectMapper.writeValueAsString(itemDto);
@@ -293,11 +334,11 @@ class ItemControllerTest {
     }
 
     @Test
-    void searchItems_shouldReturnItems_ifTheSearchTextIsPresentInTheNameAndDescription() throws Exception {
+    void searchItems_shouldReturnItems() throws Exception {
         String text = "дрель";
-
         Long itemId1 = 1L;
         Long itemId2 = 2L;
+
         ItemDto itemDto1 = initItemDto();
         ItemDto itemDto2 = initItemDto();
         Item item1 = initItem();
@@ -314,92 +355,98 @@ class ItemControllerTest {
         String json = objectMapper.writeValueAsString(expectedItemDto);
 
         when(itemService.searchItems(text)).thenReturn(expectedItem);
-        when(itemMapper.toItemDto(item1)).thenReturn(itemDto1);
-        when(itemMapper.toItemDto(item2)).thenReturn(itemDto2);
+        when(itemMapper.toDto(item1)).thenReturn(itemDto1);
+        when(itemMapper.toDto(item2)).thenReturn(itemDto2);
 
         mockMvc.perform(get("/items/search?text={text}", text))
                 .andExpect(status().isOk())
                 .andExpect(content().json(json));
 
         verify(itemService, times(1)).searchItems(text);
-        verify(itemMapper, times(1)).toItemDto(item1);
-        verify(itemMapper, times(1)).toItemDto(item2);
+        verify(itemMapper, times(1)).toDto(item1);
+        verify(itemMapper, times(1)).toDto(item2);
     }
 
     @Test
-    void searchItems_shouldReturnItems_ifTheSearchTextIsPresentOnlyInTheName() throws Exception {
-        String text = "дрель";
+    void createComment_shouldResponseWithOk() throws Exception {
+        Long userId = 1L;
+        Long itemId = 2L;
 
-        Long itemId1 = 1L;
-        Long itemId2 = 2L;
-        ItemDto itemDto1 = initItemDto();
-        ItemDto itemDto2 = initItemDto();
-        Item item1 = initItem();
-        Item item2 = initItem();
+        CommentForCreateDto commentForCreateDto = initCommentForCreateDto();
+        CommentForResponseDto commentForResponseDto = initCommentForResponseDto();
+        Comment comment = initComment();
 
-        itemDto1.setId(itemId1);
-        item1.setId(itemId1);
-        itemDto2.setId(itemId2);
-        item2.setId(itemId2);
+        String json = objectMapper.writeValueAsString(commentForCreateDto);
 
-        itemDto1.setName("Аккумулятор");
-        itemDto1.setDescription("Аккумулятор");
-        itemDto2.setDescription("Простая");
-        item1.setName("Аккумулятор");
-        item1.setDescription("Аккумулятор");
-        item2.setDescription("Простая");
+        when(commentMapper.toComment(commentForCreateDto, itemId, userId)).thenReturn(comment);
+        when(itemService.createComment(comment)).thenReturn(comment);
+        when(commentMapper.toDto(comment)).thenReturn(commentForResponseDto);
 
-        List<Item> expectedItem = List.of(item2);
-        List<ItemDto> expectedItemDto = List.of(itemDto2);
+        mockMvc.perform(post("/items/{id}/comment", itemId).header("X-Sharer-User-Id", userId)
+                        .contentType("application/json").content(json))
+                .andExpect(status().isOk());
 
-        String json = objectMapper.writeValueAsString(expectedItemDto);
-
-        when(itemService.searchItems(text)).thenReturn(expectedItem);
-        when(itemMapper.toItemDto(item2)).thenReturn(itemDto2);
-
-        mockMvc.perform(get("/items/search?text={text}", text))
-                .andExpect(status().isOk())
-                .andExpect(content().json(json));
-
-        verify(itemService, times(1)).searchItems(text);
-        verify(itemMapper, times(1)).toItemDto(item2);
+        verify(commentMapper, times(1)).toComment(commentForCreateDto, itemId, userId);
+        verify(itemService, times(1)).createComment(comment);
+        verify(commentMapper, times(1)).toDto(comment);
     }
 
     @Test
-    void searchItems_shouldReturnItems_ifTheSearchTextIsPresentOnlyInTheDescription() throws Exception {
-        String text = "прост";
+    void createComment_shouldResponseWithNotFound_ifUserOrItemDoesNotExist() throws Exception {
+        Long userId = 1L;
+        Long itemId = 2L;
 
-        Long itemId1 = 1L;
-        Long itemId2 = 2L;
-        ItemDto itemDto1 = initItemDto();
-        ItemDto itemDto2 = initItemDto();
-        Item item1 = initItem();
-        Item item2 = initItem();
+        CommentForCreateDto commentForCreateDto = initCommentForCreateDto();
+        Comment comment = initComment();
 
-        itemDto1.setId(itemId1);
-        item1.setId(itemId1);
-        itemDto2.setId(itemId2);
-        item2.setId(itemId2);
+        String json = objectMapper.writeValueAsString(commentForCreateDto);
 
-        itemDto2.setName("Аккумулятор");
-        itemDto2.setDescription("Аккумулятор");
-        item2.setName("Аккумулятор");
-        item2.setDescription("Аккумулятор");
+        when(commentMapper.toComment(commentForCreateDto, itemId, userId)).thenReturn(comment);
+        when(itemService.createComment(comment)).thenThrow(NotFoundException.class);
 
-        List<Item> expectedItem = List.of(item1);
-        List<ItemDto> expectedItemDto = List.of(itemDto1);
+        mockMvc.perform(post("/items/{id}/comment", itemId).header("X-Sharer-User-Id", userId)
+                        .contentType("application/json").content(json))
+                .andExpect(status().isNotFound());
 
-        String json = objectMapper.writeValueAsString(expectedItemDto);
+        verify(commentMapper, times(1)).toComment(commentForCreateDto, itemId, userId);
+        verify(itemService, times(1)).createComment(comment);
+        verify(commentMapper, never()).toDto(comment);
+    }
 
-        when(itemService.searchItems(text)).thenReturn(expectedItem);
-        when(itemMapper.toItemDto(item1)).thenReturn(itemDto1);
+    @Test
+    void createComment_shouldResponseWithBadRequest_ifTheItemBookingIsNotValid() throws Exception {
+        Long userId = 1L;
+        Long itemId = 2L;
 
-        mockMvc.perform(get("/items/search?text={text}", text))
-                .andExpect(status().isOk())
-                .andExpect(content().json(json));
+        CommentForCreateDto commentForCreateDto = initCommentForCreateDto();
+        Comment comment = initComment();
 
-        verify(itemService, times(1)).searchItems(text);
-        verify(itemMapper, times(1)).toItemDto(item1);
+        String json = objectMapper.writeValueAsString(commentForCreateDto);
+
+        when(commentMapper.toComment(commentForCreateDto, itemId, userId)).thenReturn(comment);
+        when(itemService.createComment(comment)).thenThrow(ValidationException.class);
+
+        mockMvc.perform(post("/items/{id}/comment", itemId).header("X-Sharer-User-Id", userId)
+                        .contentType("application/json").content(json))
+                .andExpect(status().isBadRequest());
+
+        verify(commentMapper, times(1)).toComment(commentForCreateDto, itemId, userId);
+        verify(itemService, times(1)).createComment(comment);
+        verify(commentMapper, never()).toDto(comment);
+    }
+
+    @ParameterizedTest
+    @MethodSource("provideInvalidComments")
+    void createComment_shouldResponseWithBadRequest_ifTheCommentIsInvalid(CommentForCreateDto commentDto)
+            throws Exception {
+        Long userId = 1L;
+        Long itemId = 2L;
+
+        String json = objectMapper.writeValueAsString(commentDto);
+
+        mockMvc.perform(post("/items/{id}/comment", itemId).header("X-Sharer-User-Id", userId)
+                        .contentType("application/json").content(json))
+                .andExpect(status().isBadRequest());
     }
 
     private static Stream<Arguments> provideInvalidItems() {
@@ -413,12 +460,35 @@ class ItemControllerTest {
         );
     }
 
+    private static Stream<Arguments> provideInvalidComments() {
+        return Stream.of(
+                Arguments.of(initCommentForCreateDto(commentDto -> commentDto.setText(null))),
+                Arguments.of(initCommentForCreateDto(commentDto -> commentDto.setText(""))),
+                Arguments.of(initCommentForCreateDto(commentDto -> commentDto.setText("     "))),
+                Arguments.of(initCommentForCreateDto(commentDto -> commentDto.setText("К"))),
+                Arguments.of(initCommentForCreateDto(commentDto -> commentDto.setText("Комме".repeat(200) + "н")))
+        );
+    }
+
     private static ItemDto initItemDto(Consumer<ItemDto> consumer) {
         ItemDto itemDto = initItemDto();
-
         consumer.accept(itemDto);
-
         return itemDto;
+    }
+
+    private static CommentForCreateDto initCommentForCreateDto(Consumer<CommentForCreateDto> consumer) {
+        CommentForCreateDto commentForCreateDto = initCommentForCreateDto();
+        consumer.accept(commentForCreateDto);
+        return commentForCreateDto;
+    }
+
+    private static User initUser() {
+        User user = new User();
+
+        user.setEmail("user@user.com");
+        user.setName("user");
+
+        return user;
     }
 
     private static ItemDto initItemDto() {
@@ -439,5 +509,27 @@ class ItemControllerTest {
         item.setAvailable(true);
 
         return item;
+    }
+
+    private static CommentForCreateDto initCommentForCreateDto() {
+        CommentForCreateDto commentDto = new CommentForCreateDto();
+        commentDto.setText("Комментарий пользователя");
+        return commentDto;
+    }
+
+    private static CommentForResponseDto initCommentForResponseDto() {
+        CommentForResponseDto commentDto = new CommentForResponseDto();
+
+        commentDto.setText("Комментарий пользователя");
+        commentDto.setAuthorName("Автор");
+        commentDto.setCreated(LocalDateTime.now());
+
+        return commentDto;
+    }
+
+    private static Comment initComment() {
+        Comment comment = new Comment();
+        comment.setText("Комментарий пользователя");
+        return comment;
     }
 }

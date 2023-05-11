@@ -67,6 +67,7 @@ class UserControllerTest {
     void getUsers_shouldReturnListOfUsers() throws Exception {
         Long userId1 = 1L;
         Long userId2 = 2L;
+
         UserDto userDto1 = initUserDto();
         UserDto userDto2 = initUserDto();
         User user1 = initUser();
@@ -83,16 +84,14 @@ class UserControllerTest {
         String json = objectMapper.writeValueAsString(expectedUserDto);
 
         when(userService.getUsers()).thenReturn(expectedUser);
-        when(userMapper.toUserDto(user1)).thenReturn(userDto1);
-        when(userMapper.toUserDto(user2)).thenReturn(userDto2);
+        when(userMapper.toDtos(expectedUser)).thenReturn(expectedUserDto);
 
         mockMvc.perform(get("/users"))
                 .andExpect(status().isOk())
                 .andExpect(content().json(json));
 
         verify(userService, times(1)).getUsers();
-        verify(userMapper, times(1)).toUserDto(user1);
-        verify(userMapper, times(1)).toUserDto(user2);
+        verify(userMapper, times(1)).toDtos(expectedUser);
     }
 
     @Test
@@ -104,14 +103,14 @@ class UserControllerTest {
         String json = objectMapper.writeValueAsString(userDto);
 
         when(userService.getUserById(userId)).thenReturn(user);
-        when(userMapper.toUserDto(user)).thenReturn(userDto);
+        when(userMapper.toDto(user)).thenReturn(userDto);
 
         mockMvc.perform(get("/users/{id}", userId))
                 .andExpect(status().isOk())
                 .andExpect(content().json(json));
 
         verify(userService, times(1)).getUserById(userId);
-        verify(userMapper, times(1)).toUserDto(user);
+        verify(userMapper, times(1)).toDto(user);
     }
 
     @Test
@@ -135,19 +134,19 @@ class UserControllerTest {
 
         when(userMapper.toUser(userDto)).thenReturn(user);
         when(userService.createUser(user)).thenReturn(user);
-        when(userMapper.toUserDto(user)).thenReturn(userDto);
+        when(userMapper.toDto(user)).thenReturn(userDto);
 
         mockMvc.perform(post("/users").contentType("application/json").content(json))
                 .andExpect(status().isCreated());
 
         verify(userMapper, times(1)).toUser(userDto);
         verify(userService, times(1)).createUser(user);
-        verify(userMapper, times(1)).toUserDto(user);
+        verify(userMapper, times(1)).toDto(user);
     }
 
     @ParameterizedTest
     @MethodSource("provideInvalidUsers")
-    void createUser_shouldResponseWithBadRequest_ifUserIsInvalid(UserDto userDto) throws Exception {
+    void createUser_shouldResponseWithBadRequest_ifTheUserIsInvalid(UserDto userDto) throws Exception {
         String json = objectMapper.writeValueAsString(userDto);
 
         mockMvc.perform(post("/users").contentType("application/json").content(json))
@@ -157,6 +156,7 @@ class UserControllerTest {
     @Test
     void updateUserById_shouldResponseWithOk() throws Exception {
         Long userId = 1L;
+
         UserDto userDto = initUserDto();
         User user = initUser();
         userDto.setId(userId);
@@ -166,19 +166,20 @@ class UserControllerTest {
 
         when(userMapper.toUser(userDto)).thenReturn(user);
         when(userService.updateUser(user)).thenReturn(user);
-        when(userMapper.toUserDto(user)).thenReturn(userDto);
+        when(userMapper.toDto(user)).thenReturn(userDto);
 
         mockMvc.perform(patch("/users/{id}", userId).contentType("application/json").content(json))
                 .andExpect(status().isOk());
 
         verify(userMapper, times(1)).toUser(userDto);
         verify(userService, times(1)).updateUser(user);
-        verify(userMapper, times(1)).toUserDto(user);
+        verify(userMapper, times(1)).toDto(user);
     }
 
     @Test
     void updateUserById_shouldResponseWithNotFound_ifUserDoesNotExist() throws Exception {
         Long userId = 1L;
+
         UserDto userDto = initUserDto();
         User user = initUser();
         userDto.setId(userId);
@@ -194,14 +195,16 @@ class UserControllerTest {
 
         verify(userMapper, times(1)).toUser(userDto);
         verify(userService, times(1)).updateUser(user);
-        verify(userMapper, never()).toUserDto(user);
+        verify(userMapper, never()).toDto(user);
     }
 
     @ParameterizedTest
     @MethodSource("provideInvalidUsers")
-    void updateUserById_shouldResponseWithBadRequest_ifUserIsInvalid(UserDto userDto) throws Exception {
+    void updateUserById_shouldResponseWithBadRequest_ifTheUserIsInvalid(UserDto userDto) throws Exception {
         Long userId = 1L;
+
         userDto.setId(userId);
+
         String json = objectMapper.writeValueAsString(userDto);
 
         mockMvc.perform(patch("/users/{id}", userId).contentType("application/json").content(json))
@@ -243,9 +246,7 @@ class UserControllerTest {
 
     private static UserDto initUserDto(Consumer<UserDto> consumer) {
         UserDto userDto = initUserDto();
-
         consumer.accept(userDto);
-
         return userDto;
     }
 

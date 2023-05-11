@@ -7,7 +7,7 @@ public interface UserService {
     /**
      * Returns a list of all users
      *
-     * @return list of all users
+     * @return list of users
      */
     Collection<User> getUsers();
 
@@ -22,7 +22,6 @@ public interface UserService {
 
     /**
      * Creates a new user
-     * If the user's email already exists throws ConflictException
      *
      * @param user
      * @return new user
@@ -32,7 +31,6 @@ public interface UserService {
     /**
      * Updates the user
      * If the user is not found throws NotFoundException
-     * If the user's email already exists throws ConflictException
      *
      * @param user
      * @return updated user

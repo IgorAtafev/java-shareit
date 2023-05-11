@@ -19,6 +19,7 @@ import ru.yandex.practicum.shareit.validator.ValidationOnCreate;
 import javax.validation.Valid;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @RestController
@@ -28,41 +29,46 @@ import java.util.stream.Collectors;
 @Validated
 public class ItemController {
 
+    private static final String USER_ID_REQUEST_HEADER = "X-Sharer-User-Id";
+
     private final ItemService itemService;
     private final ItemMapper itemMapper;
+    private final CommentMapper commentMapper;
 
     @GetMapping
-    public List<ItemDto> getItemsByUserId(@RequestHeader("X-Sharer-User-Id") Long userId) {
-        return itemService.getItemsByUserId(userId).stream()
-                .map(itemMapper::toItemDto)
-                .collect(Collectors.toList());
+    public List<ItemDto> getItemsByUserId(@RequestHeader(USER_ID_REQUEST_HEADER) Long userId) {
+        return itemMapper.itemWithBookingsAndCommentsToDtos(itemService.getItemsByUserId(userId));
     }
 
     @GetMapping("/{id}")
-    public ItemDto getItemById(@PathVariable Long id) {
-        return itemMapper.toItemDto(itemService.getItemById(id));
+    public ItemDto getItemById(@RequestHeader(USER_ID_REQUEST_HEADER) Long userId, @PathVariable Long id) {
+        Item item = itemService.getItemById(id);
+        if (Objects.equals(userId, item.getOwner().getId())) {
+            return itemMapper.itemWithBookingsAndCommentsToDto(item);
+        }
+        return itemMapper.itemWithCommentsToDto(item);
     }
 
     @PostMapping
     @Validated(ValidationOnCreate.class)
     @ResponseStatus(HttpStatus.CREATED)
     public ItemDto createItem(
-            @RequestHeader("X-Sharer-User-Id") Long userId,
+            @RequestHeader(USER_ID_REQUEST_HEADER) Long userId,
             @RequestBody @Valid ItemDto itemDto
     ) {
         log.info("Request received POST /items: '{}', userId: {}", itemDto, userId);
-        return itemMapper.toItemDto(itemService.createItem(itemMapper.toItem(itemDto, userId)));
+        return itemMapper.toDto(itemService.createItem(itemMapper.toItem(itemDto, userId)));
     }
 
     @PatchMapping("/{id}")
     public ItemDto updateItemById(
-            @RequestHeader("X-Sharer-User-Id") Long userId,
+            @RequestHeader(USER_ID_REQUEST_HEADER) Long userId,
             @PathVariable Long id,
             @RequestBody @Valid ItemDto itemDto
     ) {
         log.info("Request received PATCH /items/{}: '{}', userId: {}", id, itemDto, userId);
         itemDto.setId(id);
-        return itemMapper.toItemDto(itemService.updateItem(itemMapper.toItem(itemDto, userId)));
+        return itemMapper.toDto(itemService.updateItem(itemMapper.toItem(itemDto, userId)));
     }
 
     @GetMapping("/search")
@@ -72,7 +78,19 @@ public class ItemController {
         }
 
         return itemService.searchItems(text).stream()
-                .map(itemMapper::toItemDto)
+                .map(itemMapper::toDto)
                 .collect(Collectors.toList());
+    }
+
+    @PostMapping("/{id}/comment")
+    public CommentForResponseDto createComment(
+            @RequestHeader(USER_ID_REQUEST_HEADER) Long userId,
+            @PathVariable Long id,
+            @RequestBody @Valid CommentForCreateDto commentDto
+    ) {
+        log.info("Request received POST /items/{}/comment: '{}', userId: {}", id, commentDto, userId);
+        return commentMapper.toDto(
+                itemService.createComment(commentMapper.toComment(commentDto, id, userId))
+        );
     }
 }

@@ -1,15 +1,17 @@
 package ru.yandex.practicum.shareit.item;
 
 import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 
 public interface ItemService {
 
     /**
-     * Returns a list of user items
+     * Returns a list of user's items
      * If the user is not found throws NotFoundException
      *
      * @param userId
-     * @return list of user items
+     * @return list of items
      */
     Collection<Item> getItemsByUserId(Long userId);
 
@@ -23,7 +25,7 @@ public interface ItemService {
     Item getItemById(Long id);
 
     /**
-     * Creates a new item
+     * Creates a new item by the user
      * If the user is not found throws NotFoundException
      *
      * @param item
@@ -32,7 +34,7 @@ public interface ItemService {
     Item createItem(Item item);
 
     /**
-     * Updates the item
+     * Updates the item by the user
      * If the user is not found throws NotFoundException
      * If the item is not found throws NotFoundException
      *
@@ -49,4 +51,32 @@ public interface ItemService {
      * @return list of items
      */
     Collection<Item> searchItems(String text);
+
+    /**
+     * Creates a new comment for the item by the user
+     * If the user is not found throws NotFoundException
+     * If the item is not found throws NotFoundException
+     * If the user did not rent the item or the user's lease period
+     * has not expired throws ValidationException
+     *
+     * @param comment
+     * @return new comment
+     */
+    Comment createComment(Comment comment);
+
+    /**
+     * Returns a list of comments for item IDs
+     *
+     * @param itemIds
+     * @return a list of comments for item IDs
+     */
+    Map<Long, List<Comment>> getCommentsByItemIds(List<Long> itemIds);
+
+    /**
+     * Returns a list of comments for item ID
+     *
+     * @param itemId
+     * @return a list of comments for item ID
+     */
+    List<Comment> getCommentsByItemId(Long itemId);
 }
