@@ -20,7 +20,7 @@ public interface ItemService {
      * If the item is not found throws NotFoundException
      *
      * @param id
-     * @return user by id
+     * @return item by id
      */
     Item getItemById(Long id);
 
@@ -68,7 +68,7 @@ public interface ItemService {
      * Returns a list of comments for item IDs
      *
      * @param itemIds
-     * @return a list of comments for item IDs
+     * @return list of comments
      */
     Map<Long, List<Comment>> getCommentsByItemIds(List<Long> itemIds);
 
@@ -76,7 +76,23 @@ public interface ItemService {
      * Returns a list of comments for item ID
      *
      * @param itemId
-     * @return a list of comments for item ID
+     * @return list of comments
      */
     List<Comment> getCommentsByItemId(Long itemId);
+
+    /**
+     * Returns a list of items for request IDs
+     *
+     * @param requestIds
+     * @return list of items
+     */
+    Map<Long, List<Item>> getItemsByRequestIds(List<Long> requestIds);
+
+    /**
+     * Returns a list of items for request ID
+     *
+     * @param requestId
+     * @return list of items
+     */
+    List<Item> getItemsByRequestId(Long requestId);
 }

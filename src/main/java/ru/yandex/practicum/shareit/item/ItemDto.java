@@ -41,4 +41,6 @@ public class ItemDto {
 
     @Null(groups = ValidationOnCreate.class, message = "Comments must be null")
     private List<CommentForResponseDto> comments;
+
+    private Long requestId;
 }

@@ -4,6 +4,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import ru.yandex.practicum.shareit.request.ItemRequest;
 import ru.yandex.practicum.shareit.user.User;
 
 import javax.persistence.Column;
@@ -38,4 +39,7 @@ public class Item {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     private User owner;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    private ItemRequest request;
 }

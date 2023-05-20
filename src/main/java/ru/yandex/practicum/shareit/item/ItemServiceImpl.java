@@ -99,6 +99,17 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public List<Comment> getCommentsByItemId(Long itemId) {
-        return new ArrayList<>(commentRepository.findByItemId(itemId, Sort.by("created").ascending()));
+        return new ArrayList<>(commentRepository.findByItemId(itemId, Sort.by("created").descending()));
+    }
+
+    @Override
+    public Map<Long, List<Item>> getItemsByRequestIds(List<Long> requestIds) {
+        return itemRepository.findByRequestIdIn(requestIds, Sort.by("id").ascending()).stream()
+                .collect(Collectors.groupingBy(item -> item.getRequest().getId()));
+    }
+
+    @Override
+    public List<Item> getItemsByRequestId(Long requestId) {
+        return new ArrayList<>(itemRepository.findByRequestId(requestId, Sort.by("id").ascending()));
     }
 }

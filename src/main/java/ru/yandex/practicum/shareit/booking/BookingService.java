@@ -63,7 +63,7 @@ public interface BookingService {
      * Returns a list of bookings for item IDs
      *
      * @param itemIds
-     * @return a list of bookings for item IDs
+     * @return list of bookings
      */
     Map<Long, List<Booking>> getBookingsByItemIds(List<Long> itemIds);
 
@@ -71,7 +71,7 @@ public interface BookingService {
      * Returns a list of bookings for item ID
      *
      * @param itemId
-     * @return a list of bookings for item ID
+     * @return list of bookings
      */
     List<Booking> getBookingsByItemId(Long itemId);
 
@@ -79,7 +79,7 @@ public interface BookingService {
      * Returns the last booking before the current time
      *
      * @param bookings
-     * @return the last booking
+     * @return last booking
      */
     Booking getLastBooking(List<Booking> bookings);
 
@@ -87,7 +87,7 @@ public interface BookingService {
      * Returns the first booking after the current time
      *
      * @param bookings
-     * @return the first booking
+     * @return first booking
      */
     Booking getNextBooking(List<Booking> bookings);
 }

@@ -1,9 +1,11 @@
 package ru.yandex.practicum.shareit.item;
 
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
 import java.util.Collection;
+import java.util.List;
 
 public interface ItemRepository extends JpaRepository<Item, Long> {
 
@@ -45,4 +47,22 @@ public interface ItemRepository extends JpaRepository<Item, Long> {
      * @param ownerId
      */
     void deleteByOwnerId(Long ownerId);
+
+    /**
+     * Returns a list of items for request IDs
+     *
+     * @param requestIds
+     * @param sort
+     * @return list of items
+     */
+    Collection<Item> findByRequestIdIn(List<Long> requestIds, Sort sort);
+
+    /**
+     * Returns a list of items for request ID
+     *
+     * @param requestId
+     * @param sort
+     * @return list of items
+     */
+    Collection<Item> findByRequestId(Long requestId, Sort sort);
 }

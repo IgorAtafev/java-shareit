@@ -5,6 +5,7 @@ import org.springframework.stereotype.Component;
 import ru.yandex.practicum.shareit.booking.Booking;
 import ru.yandex.practicum.shareit.booking.BookingForItemsMapper;
 import ru.yandex.practicum.shareit.booking.BookingService;
+import ru.yandex.practicum.shareit.request.ItemRequestService;
 import ru.yandex.practicum.shareit.user.UserService;
 
 import java.util.Collection;
@@ -19,6 +20,7 @@ public class ItemMapper {
     private final ItemService itemService;
     private final UserService userService;
     private final BookingService bookingService;
+    private final ItemRequestService itemRequestService;
     private final BookingForItemsMapper bookingForItemsMapper;
     private final CommentMapper commentMapper;
 
@@ -29,6 +31,10 @@ public class ItemMapper {
         itemDto.setName(item.getName());
         itemDto.setDescription(item.getDescription());
         itemDto.setAvailable(item.getAvailable());
+
+        if (item.getRequest() != null) {
+            itemDto.setRequestId(item.getRequest().getId());
+        }
 
         return itemDto;
     }
@@ -103,6 +109,10 @@ public class ItemMapper {
         }
 
         item.setOwner(userService.getUserById(ownerId));
+
+        if (itemDto.getRequestId() != null) {
+            item.setRequest(itemRequestService.getItemRequestById(itemDto.getRequestId(), ownerId));
+        }
 
         return item;
     }
