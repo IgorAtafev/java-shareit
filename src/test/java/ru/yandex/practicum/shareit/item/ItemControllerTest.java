@@ -61,12 +61,14 @@ class ItemControllerTest {
     @Test
     void getItemsByUserId_shouldReturnEmptyListOfItems() throws Exception {
         Long userId = 1L;
+        Integer from = 0;
+        Integer size = 20;
 
         mockMvc.perform(get("/items").header("X-Sharer-User-Id", userId))
                 .andExpect(status().isOk())
                 .andExpect(content().json("[]"));
 
-        verify(itemService, times(1)).getItemsByUserId(userId);
+        verify(itemService, times(1)).getItemsByUserId(userId, from, size);
     }
 
     @Test
@@ -74,6 +76,8 @@ class ItemControllerTest {
         Long userId = 1L;
         Long itemId1 = 1L;
         Long itemId2 = 2L;
+        Integer from = 0;
+        Integer size = 20;
 
         ItemDto itemDto1 = initItemDto();
         ItemDto itemDto2 = initItemDto();
@@ -90,27 +94,29 @@ class ItemControllerTest {
 
         String json = objectMapper.writeValueAsString(expectedItemDto);
 
-        when(itemService.getItemsByUserId(userId)).thenReturn(expectedItem);
+        when(itemService.getItemsByUserId(userId, from, size)).thenReturn(expectedItem);
         when(itemMapper.itemWithBookingsAndCommentsToDtos(expectedItem)).thenReturn(expectedItemDto);
 
         mockMvc.perform(get("/items").header("X-Sharer-User-Id", userId))
                 .andExpect(status().isOk())
                 .andExpect(content().json(json));
 
-        verify(itemService, times(1)).getItemsByUserId(userId);
+        verify(itemService, times(1)).getItemsByUserId(userId, from, size);
         verify(itemMapper, times(1)).itemWithBookingsAndCommentsToDtos(expectedItem);
     }
 
     @Test
     void getItemsByUserId_shouldResponseWithNotFound_ifUserDoesNotExist() throws Exception {
         Long userId = 1L;
+        Integer from = 0;
+        Integer size = 20;
 
-        when(itemService.getItemsByUserId(userId)).thenThrow(NotFoundException.class);
+        when(itemService.getItemsByUserId(userId, from, size)).thenThrow(NotFoundException.class);
 
         mockMvc.perform(get("/items").header("X-Sharer-User-Id", userId))
                 .andExpect(status().isNotFound());
 
-        verify(itemService, times(1)).getItemsByUserId(userId);
+        verify(itemService, times(1)).getItemsByUserId(userId, from, size);
     }
 
     @Test
@@ -319,18 +325,20 @@ class ItemControllerTest {
     @Test
     void searchItems_shouldReturnEmptyListOfItems() throws Exception {
         String text = "аккумулятор";
+        Integer from = 0;
+        Integer size = 20;
 
         List<Item> expectedItem = List.of();
         List<ItemDto> expectedItemDto = List.of();
         String json = objectMapper.writeValueAsString(expectedItemDto);
 
-        when(itemService.searchItems(text)).thenReturn(expectedItem);
+        when(itemService.searchItems(text, from, size)).thenReturn(expectedItem);
 
         mockMvc.perform(get("/items/search?text={text}", text))
                 .andExpect(status().isOk())
                 .andExpect(content().json(json));
 
-        verify(itemService, times(1)).searchItems(text);
+        verify(itemService, times(1)).searchItems(text, from, size);
     }
 
     @Test
@@ -338,6 +346,8 @@ class ItemControllerTest {
         String text = "дрель";
         Long itemId1 = 1L;
         Long itemId2 = 2L;
+        Integer from = 0;
+        Integer size = 20;
 
         ItemDto itemDto1 = initItemDto();
         ItemDto itemDto2 = initItemDto();
@@ -354,17 +364,15 @@ class ItemControllerTest {
 
         String json = objectMapper.writeValueAsString(expectedItemDto);
 
-        when(itemService.searchItems(text)).thenReturn(expectedItem);
-        when(itemMapper.toDto(item1)).thenReturn(itemDto1);
-        when(itemMapper.toDto(item2)).thenReturn(itemDto2);
+        when(itemService.searchItems(text, from, size)).thenReturn(expectedItem);
+        when(itemMapper.toDtos(expectedItem)).thenReturn(expectedItemDto);
 
         mockMvc.perform(get("/items/search?text={text}", text))
                 .andExpect(status().isOk())
                 .andExpect(content().json(json));
 
-        verify(itemService, times(1)).searchItems(text);
-        verify(itemMapper, times(1)).toDto(item1);
-        verify(itemMapper, times(1)).toDto(item2);
+        verify(itemService, times(1)).searchItems(text, from, size);
+        verify(itemMapper, times(1)).toDtos(expectedItem);
     }
 
     @Test

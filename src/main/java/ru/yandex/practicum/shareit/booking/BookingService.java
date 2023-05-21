@@ -7,23 +7,29 @@ public interface BookingService {
 
     /**
      * Returns a list of user's bookings
+     * Results should be returned page by page
      * If the user is not found throws NotFoundException
      *
      * @param userId
      * @param state
+     * @param from
+     * @param size
      * @return list of bookings
      */
-    Iterable<Booking> getBookingsByUserId(Long userId, String state);
+    Iterable<Booking> getBookingsByUserId(Long userId, String state, Integer from, Integer size);
 
     /**
      * Returns a list of bookings for all the user's items
+     * Results should be returned page by page
      * If the user is not found throws NotFoundException
      *
      * @param userId
      * @param state
+     * @param from
+     * @param size
      * @return list of bookings
      */
-    Iterable<Booking> getBookingsByItemOwnerId(Long userId, String state);
+    Iterable<Booking> getBookingsByItemOwnerId(Long userId, String state, Integer from, Integer size);
 
     /**
      * Returns booking by id

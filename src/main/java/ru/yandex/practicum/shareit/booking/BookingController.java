@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 import ru.yandex.practicum.shareit.validator.ValidationOnCreate;
 
 import javax.validation.Valid;
+import javax.validation.constraints.Min;
 import java.util.List;
 
 @RestController
@@ -34,17 +35,21 @@ public class BookingController {
     @GetMapping
     public List<BookingForResponseDto> getBookingsByUserId(
             @RequestHeader(USER_ID_REQUEST_HEADER) Long userId,
-            @RequestParam(defaultValue = "ALL") String state
+            @RequestParam(defaultValue = "ALL") String state,
+            @RequestParam(defaultValue = "0") @Min(0) Integer from,
+            @RequestParam(defaultValue = "20") @Min(1) Integer size
     ) {
-        return bookingMapper.toDtos(bookingService.getBookingsByUserId(userId, state));
+        return bookingMapper.toDtos(bookingService.getBookingsByUserId(userId, state, from, size));
     }
 
     @GetMapping("/owner")
     public List<BookingForResponseDto> getBookingsByItemOwnerId(
             @RequestHeader(USER_ID_REQUEST_HEADER) Long userId,
-            @RequestParam(defaultValue = "ALL") String state
+            @RequestParam(defaultValue = "ALL") String state,
+            @RequestParam(defaultValue = "0") @Min(0) Integer from,
+            @RequestParam(defaultValue = "20") @Min(1) Integer size
     ) {
-        return bookingMapper.toDtos(bookingService.getBookingsByItemOwnerId(userId, state));
+        return bookingMapper.toDtos(bookingService.getBookingsByItemOwnerId(userId, state, from, size));
     }
 
     @GetMapping("/{id}")

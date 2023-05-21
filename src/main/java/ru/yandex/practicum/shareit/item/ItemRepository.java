@@ -1,5 +1,7 @@
 package ru.yandex.practicum.shareit.item;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -15,7 +17,7 @@ public interface ItemRepository extends JpaRepository<Item, Long> {
      * @param ownerId
      * @return list of items
      */
-    Collection<Item> findByOwnerIdOrderById(Long ownerId);
+    Page<Item> findByOwnerId(Long ownerId, Pageable page);
 
     /**
      * Returns a list of found items available for rent
@@ -30,7 +32,7 @@ public interface ItemRepository extends JpaRepository<Item, Long> {
             "and (upper(i.name) like upper(concat('%', ?1,'%')) " +
             "or upper(i.description) like upper(concat('%', ?1,'%'))) " +
             "order by i.id")
-    Collection<Item> searchItemsByText(String text);
+    Page<Item> searchItemsByText(String text, Pageable page);
 
     /**
      * Checks for the existence of item by id and user id

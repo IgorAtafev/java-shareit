@@ -8,12 +8,15 @@ public interface ItemService {
 
     /**
      * Returns a list of user's items
+     * Results should be returned page by page
      * If the user is not found throws NotFoundException
      *
      * @param userId
+     * @param from
+     * @param size
      * @return list of items
      */
-    Collection<Item> getItemsByUserId(Long userId);
+    Collection<Item> getItemsByUserId(Long userId, Integer from, Integer size);
 
     /**
      * Returns item by id
@@ -46,11 +49,14 @@ public interface ItemService {
     /**
      * Returns a list of found items available for rent
      * The search is conducted by the presence of a substring text in the title and description
+     * Results should be returned page by page
      *
      * @param text
+     * @param from
+     * @param size
      * @return list of items
      */
-    Collection<Item> searchItems(String text);
+    Collection<Item> searchItems(String text, Integer from, Integer size);
 
     /**
      * Creates a new comment for the item by the user

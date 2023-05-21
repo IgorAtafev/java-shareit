@@ -6,6 +6,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import ru.yandex.practicum.shareit.booking.BookingRepository;
 import ru.yandex.practicum.shareit.booking.BookingStatus;
 import ru.yandex.practicum.shareit.user.User;
@@ -50,19 +53,25 @@ class ItemServiceImplTest {
     @Test
     void getItemsByUserId_shouldReturnEmptyListOfItems() {
         Long userId = 1L;
+        Integer from = 0;
+        Integer size = 20;
+        PageRequest page = PageRequest.of(from / size, size, Sort.by("id").ascending());
 
         when(userRepository.existsById(userId)).thenReturn(true);
-        when(itemRepository.findByOwnerIdOrderById(userId)).thenReturn(Collections.emptyList());
+        when(itemRepository.findByOwnerId(userId, page)).thenReturn(new PageImpl<>(Collections.emptyList()));
 
-        assertThat(itemService.getItemsByUserId(userId).isEmpty()).isTrue();
+        assertThat(itemService.getItemsByUserId(userId, from, size).isEmpty()).isTrue();
 
         verify(userRepository, times(1)).existsById(userId);
-        verify(itemRepository, times(1)).findByOwnerIdOrderById(userId);
+        verify(itemRepository, times(1)).findByOwnerId(userId, page);
     }
 
     @Test
     void getItemsByUserId_shouldReturnItemsByUserId() {
         Long userId = 1L;
+        Integer from = 0;
+        Integer size = 20;
+        PageRequest page = PageRequest.of(from / size, size, Sort.by("id").ascending());
 
         Item item1 = initItem();
         Item item2 = initItem();
@@ -70,25 +79,28 @@ class ItemServiceImplTest {
         List<Item> expected = List.of(item1, item2);
 
         when(userRepository.existsById(userId)).thenReturn(true);
-        when(itemRepository.findByOwnerIdOrderById(userId)).thenReturn(expected);
+        when(itemRepository.findByOwnerId(userId, page)).thenReturn(new PageImpl<>(expected));
 
-        assertThat(itemService.getItemsByUserId(userId)).isEqualTo(expected);
+        assertThat(itemService.getItemsByUserId(userId, from, size)).isEqualTo(expected);
 
         verify(userRepository, times(1)).existsById(userId);
-        verify(itemRepository, times(1)).findByOwnerIdOrderById(userId);
+        verify(itemRepository, times(1)).findByOwnerId(userId, page);
     }
 
     @Test
     void getItemsByUserId_shouldThrowAnException_ifUserDoesNotExist() {
         Long userId = 1L;
+        Integer from = 0;
+        Integer size = 20;
+        PageRequest page = PageRequest.of(from / size, size, Sort.by("id").ascending());
 
         when(userRepository.existsById(userId)).thenReturn(false);
 
         assertThatExceptionOfType(NotFoundException.class)
-                .isThrownBy(() -> itemService.getItemsByUserId(userId));
+                .isThrownBy(() -> itemService.getItemsByUserId(userId, from, size));
 
         verify(userRepository, times(1)).existsById(userId);
-        verify(itemRepository, never()).findByOwnerIdOrderById(userId);
+        verify(itemRepository, never()).findByOwnerId(userId, page);
     }
 
     @Test
@@ -169,33 +181,42 @@ class ItemServiceImplTest {
     @Test
     void searchItems_shouldReturnEmptyListOfItems() {
         String text = "аккумулятор";
+        Integer from = 0;
+        Integer size = 20;
+        PageRequest page = PageRequest.of(from / size, size);
 
-        when(itemRepository.searchItemsByText(text)).thenReturn(Collections.emptyList());
+        when(itemRepository.searchItemsByText(text, page)).thenReturn(new PageImpl<>(Collections.emptyList()));
 
-        assertThat(itemService.searchItems(text).isEmpty()).isTrue();
+        assertThat(itemService.searchItems(text, from, size).isEmpty()).isTrue();
 
-        verify(itemRepository, times(1)).searchItemsByText(text);
+        verify(itemRepository, times(1)).searchItemsByText(text, page);
     }
 
     @Test
     void searchItems_shouldReturnItems_ifTheSearchTextIsPresentInTheNameAndDescription() {
         String text = "дрель";
+        Integer from = 0;
+        Integer size = 20;
+        PageRequest page = PageRequest.of(from / size, size);
 
         Item item1 = initItem();
         Item item2 = initItem();
 
         List<Item> expected = List.of(item1, item2);
 
-        when(itemRepository.searchItemsByText(text)).thenReturn(expected);
+        when(itemRepository.searchItemsByText(text, page)).thenReturn(new PageImpl<>(expected));
 
-        assertThat(itemService.searchItems(text)).isEqualTo(expected);
+        assertThat(itemService.searchItems(text, from, size)).isEqualTo(expected);
 
-        verify(itemRepository, times(1)).searchItemsByText(text);
+        verify(itemRepository, times(1)).searchItemsByText(text, page);
     }
 
     @Test
     void searchItems_shouldReturnItems_ifTheSearchTextIsPresentOnlyInTheName() {
         String text = "дрель";
+        Integer from = 0;
+        Integer size = 20;
+        PageRequest page = PageRequest.of(from / size, size);
 
         Item item1 = initItem();
         Item item2 = initItem();
@@ -206,16 +227,19 @@ class ItemServiceImplTest {
 
         List<Item> expected = List.of(item2);
 
-        when(itemRepository.searchItemsByText(text)).thenReturn(expected);
+        when(itemRepository.searchItemsByText(text, page)).thenReturn(new PageImpl<>(expected));
 
-        assertThat(itemService.searchItems(text)).isEqualTo(expected);
+        assertThat(itemService.searchItems(text, from, size)).isEqualTo(expected);
 
-        verify(itemRepository, times(1)).searchItemsByText(text);
+        verify(itemRepository, times(1)).searchItemsByText(text, page);
     }
 
     @Test
     void searchItems_shouldReturnItems_ifTheSearchTextIsPresentOnlyInTheDescription() {
         String text = "прост";
+        Integer from = 0;
+        Integer size = 20;
+        PageRequest page = PageRequest.of(from / size, size);
 
         Item item1 = initItem();
         Item item2 = initItem();
@@ -225,11 +249,11 @@ class ItemServiceImplTest {
 
         List<Item> expected = List.of(item1);
 
-        when(itemRepository.searchItemsByText(text)).thenReturn(expected);
+        when(itemRepository.searchItemsByText(text, page)).thenReturn(new PageImpl<>(expected));
 
-        assertThat(itemService.searchItems(text)).isEqualTo(expected);
+        assertThat(itemService.searchItems(text, from, size)).isEqualTo(expected);
 
-        verify(itemRepository, times(1)).searchItemsByText(text);
+        verify(itemRepository, times(1)).searchItemsByText(text, page);
     }
 
     @Test

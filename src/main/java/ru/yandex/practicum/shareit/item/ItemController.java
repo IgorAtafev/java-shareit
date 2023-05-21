@@ -17,10 +17,10 @@ import org.springframework.web.bind.annotation.RestController;
 import ru.yandex.practicum.shareit.validator.ValidationOnCreate;
 
 import javax.validation.Valid;
+import javax.validation.constraints.Min;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/items")
@@ -36,8 +36,12 @@ public class ItemController {
     private final CommentMapper commentMapper;
 
     @GetMapping
-    public List<ItemDto> getItemsByUserId(@RequestHeader(USER_ID_REQUEST_HEADER) Long userId) {
-        return itemMapper.itemWithBookingsAndCommentsToDtos(itemService.getItemsByUserId(userId));
+    public List<ItemDto> getItemsByUserId(
+            @RequestHeader(USER_ID_REQUEST_HEADER) Long userId,
+            @RequestParam(defaultValue = "0") @Min(0) Integer from,
+            @RequestParam(defaultValue = "20") @Min(1) Integer size
+    ) {
+        return itemMapper.itemWithBookingsAndCommentsToDtos(itemService.getItemsByUserId(userId, from, size));
     }
 
     @GetMapping("/{id}")
@@ -72,14 +76,16 @@ public class ItemController {
     }
 
     @GetMapping("/search")
-    public List<ItemDto> searchItems(@RequestParam String text) {
+    public List<ItemDto> searchItems(
+            @RequestParam String text,
+            @RequestParam(defaultValue = "0") @Min(0) Integer from,
+            @RequestParam(defaultValue = "20") @Min(1) Integer size
+    ) {
         if (text.isBlank()) {
             return Collections.emptyList();
         }
 
-        return itemService.searchItems(text).stream()
-                .map(itemMapper::toDto)
-                .collect(Collectors.toList());
+        return itemMapper.toDtos(itemService.searchItems(text, from, size));
     }
 
     @PostMapping("/{id}/comment")

@@ -1,6 +1,7 @@
 package ru.yandex.practicum.shareit.item;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,12 +29,13 @@ public class ItemServiceImpl implements ItemService {
     private final CommentRepository commentRepository;
 
     @Override
-    public Collection<Item> getItemsByUserId(Long userId) {
+    public Collection<Item> getItemsByUserId(Long userId, Integer from, Integer size) {
         if (!userRepository.existsById(userId)) {
             throw new NotFoundException(String.format("User with id %d does not exist", userId));
         }
 
-        return itemRepository.findByOwnerIdOrderById(userId);
+        PageRequest page = PageRequest.of(from / size, size, Sort.by("id").ascending());
+        return itemRepository.findByOwnerId(userId, page).getContent();
     }
 
     @Override
@@ -60,8 +62,9 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public Collection<Item> searchItems(String text) {
-        return itemRepository.searchItemsByText(text);
+    public Collection<Item> searchItems(String text, Integer from, Integer size) {
+        PageRequest page = PageRequest.of(from / size, size);
+        return itemRepository.searchItemsByText(text, page).getContent();
     }
 
     @Transactional
