@@ -33,13 +33,13 @@ public class BookingMapper {
     }
 
     public List<BookingForResponseDto> toDtos(Iterable<Booking> bookings) {
-        List<BookingForResponseDto> bookingsDto = new ArrayList<>();
+        List<BookingForResponseDto> bookingDtos = new ArrayList<>();
 
         for (Booking booking : bookings) {
-            bookingsDto.add(toDto(booking));
+            bookingDtos.add(toDto(booking));
         }
 
-        return bookingsDto;
+        return bookingDtos;
     }
 
     public Booking toBooking(BookingForCreateDto bookingDto, Long ownerId) {

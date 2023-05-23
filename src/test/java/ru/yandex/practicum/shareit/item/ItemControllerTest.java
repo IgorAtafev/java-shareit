@@ -125,9 +125,10 @@ class ItemControllerTest {
         Long itemId = 2L;
 
         User user = initUser();
-        user.setId(userId);
         ItemDto itemDto = initItemDto();
         Item item = initItem();
+
+        user.setId(userId);
         item.setOwner(user);
 
         String json = objectMapper.writeValueAsString(itemDto);
@@ -323,6 +324,19 @@ class ItemControllerTest {
     }
 
     @Test
+    void searchItems_shouldReturnEmptyListOfItems_ifSearchTextIsEmpty() throws Exception {
+        String text = "";
+        Integer from = 0;
+        Integer size = 20;
+
+        mockMvc.perform(get("/items/search?text={text}", text))
+                .andExpect(status().isOk())
+                .andExpect(content().json("[]"));
+
+        verify(itemService, never()).searchItems(text, from, size);
+    }
+
+    @Test
     void searchItems_shouldReturnEmptyListOfItems() throws Exception {
         String text = "аккумулятор";
         Integer from = 0;
@@ -478,27 +492,6 @@ class ItemControllerTest {
         );
     }
 
-    private static ItemDto initItemDto(Consumer<ItemDto> consumer) {
-        ItemDto itemDto = initItemDto();
-        consumer.accept(itemDto);
-        return itemDto;
-    }
-
-    private static CommentForCreateDto initCommentForCreateDto(Consumer<CommentForCreateDto> consumer) {
-        CommentForCreateDto commentForCreateDto = initCommentForCreateDto();
-        consumer.accept(commentForCreateDto);
-        return commentForCreateDto;
-    }
-
-    private static User initUser() {
-        User user = new User();
-
-        user.setEmail("user@user.com");
-        user.setName("user");
-
-        return user;
-    }
-
     private static ItemDto initItemDto() {
         ItemDto itemDto = new ItemDto();
 
@@ -509,7 +502,34 @@ class ItemControllerTest {
         return itemDto;
     }
 
-    private static Item initItem() {
+    private static ItemDto initItemDto(Consumer<ItemDto> consumer) {
+        ItemDto itemDto = initItemDto();
+        consumer.accept(itemDto);
+        return itemDto;
+    }
+
+    private static CommentForCreateDto initCommentForCreateDto() {
+        CommentForCreateDto commentDto = new CommentForCreateDto();
+        commentDto.setText("Комментарий пользователя");
+        return commentDto;
+    }
+
+    private static CommentForCreateDto initCommentForCreateDto(Consumer<CommentForCreateDto> consumer) {
+        CommentForCreateDto commentForCreateDto = initCommentForCreateDto();
+        consumer.accept(commentForCreateDto);
+        return commentForCreateDto;
+    }
+
+    private User initUser() {
+        User user = new User();
+
+        user.setEmail("user@user.com");
+        user.setName("user");
+
+        return user;
+    }
+
+    private Item initItem() {
         Item item = new Item();
 
         item.setName("Дрель");
@@ -519,13 +539,7 @@ class ItemControllerTest {
         return item;
     }
 
-    private static CommentForCreateDto initCommentForCreateDto() {
-        CommentForCreateDto commentDto = new CommentForCreateDto();
-        commentDto.setText("Комментарий пользователя");
-        return commentDto;
-    }
-
-    private static CommentForResponseDto initCommentForResponseDto() {
+    private CommentForResponseDto initCommentForResponseDto() {
         CommentForResponseDto commentDto = new CommentForResponseDto();
 
         commentDto.setText("Комментарий пользователя");
@@ -535,7 +549,7 @@ class ItemControllerTest {
         return commentDto;
     }
 
-    private static Comment initComment() {
+    private Comment initComment() {
         Comment comment = new Comment();
         comment.setText("Комментарий пользователя");
         return comment;

@@ -14,8 +14,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -43,7 +43,7 @@ class UserServiceImplTest {
     void getUsers_shouldReturnEmptyListOfUsers() {
         when(userRepository.findAll()).thenReturn(Collections.emptyList());
 
-        assertThat(userService.getUsers().isEmpty()).isTrue();
+        assertThat(userService.getUsers()).isEmpty();
 
         verify(userRepository, times(1)).findAll();
     }
@@ -79,7 +79,7 @@ class UserServiceImplTest {
     void getUserById_shouldThrowAnException_ifUserDoesNotExist() {
         Long userId = 1L;
 
-        when(userRepository.findById(userId)).thenThrow(NotFoundException.class);
+        when(userRepository.findById(userId)).thenReturn(Optional.empty());
 
         assertThatExceptionOfType(NotFoundException.class)
                 .isThrownBy(() -> userService.getUserById(userId));
@@ -145,7 +145,7 @@ class UserServiceImplTest {
         verify(userRepository, never()).deleteById(userId);
     }
 
-    private static User initUser() {
+    private User initUser() {
         User user = new User();
 
         user.setEmail("user@user.com");

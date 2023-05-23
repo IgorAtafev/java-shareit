@@ -57,25 +57,25 @@ public class ItemMapper {
     }
 
     public List<ItemDto> itemWithBookingsAndCommentsToDtos(Collection<Item> items) {
-        List<ItemDto> itemsDto = toDtos(items);
+        List<ItemDto> itemDtos = toDtos(items);
 
-        if (itemsDto.isEmpty()) {
-            return itemsDto;
+        if (itemDtos.isEmpty()) {
+            return itemDtos;
         }
 
-        List<Long> itemIds = itemsDto.stream()
+        List<Long> itemIds = itemDtos.stream()
                 .map(ItemDto::getId)
                 .collect(Collectors.toList());
 
         Map<Long, List<Booking>> bookings = bookingService.getBookingsByItemIds(itemIds);
         Map<Long, List<Comment>> comments = itemService.getCommentsByItemIds(itemIds);
 
-        for (ItemDto itemDto : itemsDto) {
+        for (ItemDto itemDto : itemDtos) {
             setLastAndNextBookings(itemDto, bookings.get(itemDto.getId()));
             setComments(itemDto, comments.get(itemDto.getId()));
         }
 
-        return itemsDto;
+        return itemDtos;
     }
 
     public ItemDto itemWithCommentsToDto(Item item) {

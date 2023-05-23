@@ -244,12 +244,6 @@ class UserControllerTest {
         );
     }
 
-    private static UserDto initUserDto(Consumer<UserDto> consumer) {
-        UserDto userDto = initUserDto();
-        consumer.accept(userDto);
-        return userDto;
-    }
-
     private static UserDto initUserDto() {
         UserDto userDto = new UserDto();
 
@@ -259,7 +253,13 @@ class UserControllerTest {
         return userDto;
     }
 
-    private static User initUser() {
+    private static UserDto initUserDto(Consumer<UserDto> consumer) {
+        UserDto userDto = initUserDto();
+        consumer.accept(userDto);
+        return userDto;
+    }
+
+    private User initUser() {
         User user = new User();
 
         user.setEmail("user@user.com");
