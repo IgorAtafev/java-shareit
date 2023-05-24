@@ -97,7 +97,6 @@ class ItemMapperTest {
     @Test
     void itemWithBookingsAndCommentsToDto_shouldReturnItemDto() {
         Item item = initItem();
-        ItemDto itemDto;
 
         Booking booking1 = initBooking();
         Booking booking2 = initBooking();
@@ -121,7 +120,7 @@ class ItemMapperTest {
         when(itemService.getCommentsByItemId(1L)).thenReturn(comments);
         when(commentMapper.toDtos(comments)).thenReturn(commentDtos);
 
-        itemDto = itemMapper.itemWithBookingsAndCommentsToDto(item);
+        ItemDto itemDto = itemMapper.itemWithBookingsAndCommentsToDto(item);
 
         assertThat(itemDto.getLastBooking()).isEqualTo(bookingDto1);
         assertThat(itemDto.getNextBooking()).isEqualTo(bookingDto2);
@@ -150,15 +149,12 @@ class ItemMapperTest {
     }
 
     @Test
-    void itemWithBookingsAndCommentsToDtos_shouldReturnListOfOfItemDto() {
+    void itemWithBookingsAndCommentsToDtos_shouldReturnListOfItemDto() {
         Item item1 = initItem();
         Item item2 = initItem();
         item2.setId(2L);
-        ItemDto itemDto2 = initItemDto();
-        itemDto2.setId(2L);
 
         List<Item> items = List.of(item1, item2);
-        List<ItemDto> itemDtos;
 
         Booking booking1 = initBooking();
         Booking booking2 = initBooking();
@@ -196,7 +192,7 @@ class ItemMapperTest {
         when(commentMapper.toDtos(itemComments1)).thenReturn(itemCommentDtos1);
         when(commentMapper.toDtos(itemComments2)).thenReturn(itemCommentDtos2);
 
-        itemDtos = itemMapper.itemWithBookingsAndCommentsToDtos(items);
+        List<ItemDto> itemDtos = itemMapper.itemWithBookingsAndCommentsToDtos(items);
 
         assertThat(itemDtos.get(0).getLastBooking()).isEqualTo(bookingDto1);
         assertThat(itemDtos.get(0).getNextBooking()).isEqualTo(bookingDto2);
@@ -208,7 +204,6 @@ class ItemMapperTest {
     @Test
     void itemWithCommentsToDto_shouldReturnItemDto() {
         Item item = initItem();
-        ItemDto itemDto;
 
         Comment comment1 = initComment();
         Comment comment2 = initComment();
@@ -221,7 +216,7 @@ class ItemMapperTest {
         when(itemService.getCommentsByItemId(1L)).thenReturn(comments);
         when(commentMapper.toDtos(comments)).thenReturn(commentDtos);
 
-        itemDto = itemMapper.itemWithCommentsToDto(item);
+        ItemDto itemDto = itemMapper.itemWithCommentsToDto(item);
 
         assertThat(itemDto.getComments()).isEqualTo(commentDtos);
 

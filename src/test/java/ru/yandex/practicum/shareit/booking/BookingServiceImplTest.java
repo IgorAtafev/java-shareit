@@ -53,23 +53,6 @@ class BookingServiceImplTest {
     }
 
     @Test
-    void getBookingsByUserId_shouldThrowAnException_ifUserDoesNotExist() {
-        Long userId = 1L;
-        Integer from = 0;
-        Integer size = 20;
-        PageRequest page = PageRequest.of(0, size, Sort.by("start").descending());
-        String state = "ALL";
-
-        when(userRepository.existsById(userId)).thenReturn(false);
-
-        assertThatExceptionOfType(NotFoundException.class)
-                .isThrownBy(() -> bookingService.getBookingsByUserId(userId, state, from, size));
-
-        verify(userRepository, times(1)).existsById(userId);
-        verifyNoMoreInteractions(userRepository);
-    }
-
-    @Test
     void getBookingsByUserId_shouldReturnAListOfUserBookings() {
         Long userId = 1L;
         Integer from = 0;
@@ -166,6 +149,139 @@ class BookingServiceImplTest {
 
         assertThatExceptionOfType(ValidationException.class)
                 .isThrownBy(() -> bookingService.getBookingsByUserId(userId, "UNDEFINED", from, size));
+    }
+
+    @Test
+    void getBookingsByUserId_shouldThrowAnException_ifUserDoesNotExist() {
+        Long userId = 1L;
+        Integer from = 0;
+        Integer size = 20;
+        PageRequest page = PageRequest.of(0, size, Sort.by("start").descending());
+        String state = "ALL";
+
+        when(userRepository.existsById(userId)).thenReturn(false);
+
+        assertThatExceptionOfType(NotFoundException.class)
+                .isThrownBy(() -> bookingService.getBookingsByUserId(userId, state, from, size));
+
+        verify(userRepository, times(1)).existsById(userId);
+        verifyNoMoreInteractions(userRepository);
+    }
+
+    @Test
+    void getBookingsByItemOwnerId_shouldReturnAListOfBookingsForAllTheUserItems() {
+        Long userId = 1L;
+        Integer from = 0;
+        Integer size = 20;
+        PageRequest page = PageRequest.of(0, size, Sort.by("start").descending());
+
+        Booking booking1 = initBooking();
+        Booking booking2 = initBooking();
+        Booking booking3 = initBooking();
+        Booking booking4 = initBooking();
+
+        booking1.getItem().getOwner().setId(userId);
+        booking1.setStatus(BookingStatus.WAITING);
+        booking1.setStart(currentDateTime.plusHours(1));
+        booking1.setEnd(currentDateTime.plusHours(2));
+
+        booking2.getItem().getOwner().setId(userId);
+        booking2.setStatus(BookingStatus.WAITING);
+        booking2.setStart(currentDateTime.minusHours(2));
+        booking2.setEnd(currentDateTime.minusHours(1));
+
+        booking3.getItem().getOwner().setId(userId);
+        booking3.setStatus(BookingStatus.REJECTED);
+        booking3.setStart(currentDateTime.minusHours(2));
+        booking3.setEnd(currentDateTime.plusHours(1));
+
+        booking4.getItem().getOwner().setId(userId);
+        booking4.setStatus(BookingStatus.REJECTED);
+        booking4.setStart(currentDateTime.minusHours(1));
+        booking4.setEnd(currentDateTime.plusHours(2));
+
+        when(userRepository.existsById(userId)).thenReturn(true);
+
+        QBooking qBooking = QBooking.booking;
+
+        String state = "ALL";
+        BooleanExpression sourceExpression = qBooking.item.owner.id.eq(userId);
+        Predicate predicate = sourceExpression;
+        List<Booking> expected = List.of(booking1, booking2, booking3, booking4);
+
+        when(bookingRepository.findAll(predicate, page)).thenReturn(new PageImpl<>(expected));
+        assertThat(bookingService.getBookingsByItemOwnerId(userId, state, from, size)).isEqualTo(expected);
+        verify(userRepository, times(1)).existsById(userId);
+        verify(bookingRepository, times(1)).findAll(predicate, page);
+
+        state = "CURRENT";
+        BooleanExpression addExpression = qBooking.start.lt(currentDateTime).and(qBooking.end.gt(currentDateTime));
+        predicate = sourceExpression.and(addExpression);
+        expected = List.of(booking3, booking4);
+
+        when(bookingRepository.findAll(predicate, page)).thenReturn(new PageImpl<>(expected));
+        try (MockedStatic<LocalDateTime> mockDateTime = mockStatic(LocalDateTime.class)) {
+            mockDateTime.when(LocalDateTime::now).thenReturn(currentDateTime);
+            assertThat(bookingService.getBookingsByItemOwnerId(userId, state, from, size)).isEqualTo(expected);
+        }
+
+        state = "PAST";
+        addExpression = qBooking.end.lt(currentDateTime);
+        predicate = sourceExpression.and(addExpression);
+        expected = List.of(booking2);
+
+        when(bookingRepository.findAll(predicate, page)).thenReturn(new PageImpl<>(expected));
+        try (MockedStatic<LocalDateTime> mockDateTime = mockStatic(LocalDateTime.class)) {
+            mockDateTime.when(LocalDateTime::now).thenReturn(currentDateTime);
+            assertThat(bookingService.getBookingsByItemOwnerId(userId, state, from, size)).isEqualTo(expected);
+        }
+
+        state = "FUTURE";
+        addExpression = qBooking.start.gt(currentDateTime);
+        predicate = sourceExpression.and(addExpression);
+        expected = List.of(booking1);
+
+        when(bookingRepository.findAll(predicate, page)).thenReturn(new PageImpl<>(expected));
+        try (MockedStatic<LocalDateTime> mockDateTime = mockStatic(LocalDateTime.class)) {
+            mockDateTime.when(LocalDateTime::now).thenReturn(currentDateTime);
+            assertThat(bookingService.getBookingsByItemOwnerId(userId, state, from, size)).isEqualTo(expected);
+        }
+
+        state = "WAITING";
+        addExpression = qBooking.status.eq(BookingStatus.WAITING);
+        predicate = sourceExpression.and(addExpression);
+        expected = List.of(booking1, booking2);
+
+        when(bookingRepository.findAll(predicate, page)).thenReturn(new PageImpl<>(expected));
+        assertThat(bookingService.getBookingsByItemOwnerId(userId, state, from, size)).isEqualTo(expected);
+
+        state = "REJECTED";
+        addExpression = qBooking.status.eq(BookingStatus.REJECTED);
+        predicate = sourceExpression.and(addExpression);
+        expected = List.of(booking3, booking4);
+
+        when(bookingRepository.findAll(predicate, page)).thenReturn(new PageImpl<>(expected));
+        assertThat(bookingService.getBookingsByItemOwnerId(userId, state, from, size)).isEqualTo(expected);
+
+        assertThatExceptionOfType(ValidationException.class)
+                .isThrownBy(() -> bookingService.getBookingsByItemOwnerId(userId, "UNDEFINED", from, size));
+    }
+
+    @Test
+    void getBookingsByItemOwnerId_shouldThrowAnException_ifUserDoesNotExist() {
+        Long userId = 1L;
+        Integer from = 0;
+        Integer size = 20;
+        PageRequest page = PageRequest.of(0, size, Sort.by("start").descending());
+        String state = "ALL";
+
+        when(userRepository.existsById(userId)).thenReturn(false);
+
+        assertThatExceptionOfType(NotFoundException.class)
+                .isThrownBy(() -> bookingService.getBookingsByItemOwnerId(userId, state, from, size));
+
+        verify(userRepository, times(1)).existsById(userId);
+        verifyNoMoreInteractions(userRepository);
     }
 
     @Test

@@ -353,11 +353,11 @@ class BookingControllerTest {
         LocalDateTime pastDateTime = LocalDateTime.now().minusHours(1);
 
         return Stream.of(
-                Arguments.of(initBookingForCreateDto(bookingDto -> bookingDto.setStart(null))),
-                Arguments.of(initBookingForCreateDto(bookingDto -> bookingDto.setStart(pastDateTime))),
-                Arguments.of(initBookingForCreateDto(bookingDto -> bookingDto.setEnd(null))),
-                Arguments.of(initBookingForCreateDto(bookingDto -> bookingDto.setEnd(pastDateTime))),
-                Arguments.of(initBookingForCreateDto(bookingDto -> bookingDto.setItemId(null)))
+                Arguments.of(initBookingForCreateDto(dto -> dto.setStart(null))),
+                Arguments.of(initBookingForCreateDto(dto -> dto.setStart(pastDateTime))),
+                Arguments.of(initBookingForCreateDto(dto -> dto.setEnd(null))),
+                Arguments.of(initBookingForCreateDto(dto -> dto.setEnd(pastDateTime))),
+                Arguments.of(initBookingForCreateDto(dto -> dto.setItemId(null)))
         );
     }
 

@@ -124,7 +124,7 @@ class ItemServiceImplTest {
     }
 
     @Test
-    void getItemById_shouldThrowAnException_ifUserDoesNotExist() {
+    void getItemById_shouldThrowAnException_ifItemDoesNotExist() {
         Long itemId = 1L;
 
         when(itemRepository.findById(itemId)).thenReturn(Optional.empty());

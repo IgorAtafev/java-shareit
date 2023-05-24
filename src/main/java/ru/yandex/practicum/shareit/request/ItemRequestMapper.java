@@ -46,23 +46,23 @@ public class ItemRequestMapper {
     }
 
     public List<ItemRequestDto> itemRequestWithItemsToDtos(Collection<ItemRequest> itemRequests) {
-        List<ItemRequestDto> itemRequestsDto = toDtos(itemRequests);
+        List<ItemRequestDto> itemRequestDtos = toDtos(itemRequests);
 
-        if (itemRequestsDto.isEmpty()) {
-            return itemRequestsDto;
+        if (itemRequestDtos.isEmpty()) {
+            return itemRequestDtos;
         }
 
-        List<Long> itemRequestIds = itemRequestsDto.stream()
+        List<Long> itemRequestIds = itemRequestDtos.stream()
                 .map(ItemRequestDto::getId)
                 .collect(Collectors.toList());
 
         Map<Long, List<Item>> items = itemService.getItemsByRequestIds(itemRequestIds);
 
-        for (ItemRequestDto itemRequestDto : itemRequestsDto) {
+        for (ItemRequestDto itemRequestDto : itemRequestDtos) {
             setItems(itemRequestDto, items.get(itemRequestDto.getId()));
         }
 
-        return itemRequestsDto;
+        return itemRequestDtos;
     }
 
     public ItemRequest toItemRequest(ItemRequestDto itemRequestDto, Long authorId) {

@@ -177,7 +177,6 @@
                             <exclude>**/QUser.class</exclude>
                             <exclude>**/QItem.class</exclude>
                             <exclude>**/QComment.class</exclude>
-                            <exclude>**/QBooking.class</exclude>
                             <exclude>**/QItemRequest.class</exclude>
                         </excludes>
                     </configuration>

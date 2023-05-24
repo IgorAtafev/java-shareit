@@ -473,22 +473,22 @@ class ItemControllerTest {
 
     private static Stream<Arguments> provideInvalidItems() {
         return Stream.of(
-                Arguments.of(initItemDto(itemDto -> itemDto.setName(""))),
-                Arguments.of(initItemDto(itemDto -> itemDto.setName("Д"))),
-                Arguments.of(initItemDto(itemDto -> itemDto.setName("Дрель".repeat(20) + "ь"))),
-                Arguments.of(initItemDto(itemDto -> itemDto.setDescription(""))),
-                Arguments.of(initItemDto(itemDto -> itemDto.setDescription("Д"))),
-                Arguments.of(initItemDto(itemDto -> itemDto.setDescription("Дрель".repeat(40) + "ь")))
+                Arguments.of(initItemDto(dto -> dto.setName(""))),
+                Arguments.of(initItemDto(dto -> dto.setName("Д"))),
+                Arguments.of(initItemDto(dto -> dto.setName("Дрель".repeat(20) + "ь"))),
+                Arguments.of(initItemDto(dto -> dto.setDescription(""))),
+                Arguments.of(initItemDto(dto -> dto.setDescription("Д"))),
+                Arguments.of(initItemDto(dto -> dto.setDescription("Дрель".repeat(40) + "ь")))
         );
     }
 
     private static Stream<Arguments> provideInvalidComments() {
         return Stream.of(
-                Arguments.of(initCommentForCreateDto(commentDto -> commentDto.setText(null))),
-                Arguments.of(initCommentForCreateDto(commentDto -> commentDto.setText(""))),
-                Arguments.of(initCommentForCreateDto(commentDto -> commentDto.setText("     "))),
-                Arguments.of(initCommentForCreateDto(commentDto -> commentDto.setText("К"))),
-                Arguments.of(initCommentForCreateDto(commentDto -> commentDto.setText("Комме".repeat(200) + "н")))
+                Arguments.of(initCommentForCreateDto(dto -> dto.setText(null))),
+                Arguments.of(initCommentForCreateDto(dto -> dto.setText(""))),
+                Arguments.of(initCommentForCreateDto(dto -> dto.setText("     "))),
+                Arguments.of(initCommentForCreateDto(dto -> dto.setText("К"))),
+                Arguments.of(initCommentForCreateDto(dto -> dto.setText("Комме".repeat(200) + "н")))
         );
     }
 
