@@ -10,9 +10,13 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import ru.yandex.practicum.shareit.user.User;
+import ru.yandex.practicum.shareit.user.UserService;
 import ru.yandex.practicum.shareit.validator.ErrorHandler;
 import ru.yandex.practicum.shareit.validator.NotFoundException;
 import ru.yandex.practicum.shareit.validator.ValidationException;
@@ -43,6 +47,9 @@ class ItemControllerTest {
     private ItemService itemService;
 
     @Mock
+    private UserService userService;
+
+    @Mock
     private ItemMapper itemMapper;
 
     @Mock
@@ -61,14 +68,14 @@ class ItemControllerTest {
     @Test
     void getItemsByUserId_shouldReturnEmptyListOfItems() throws Exception {
         Long userId = 1L;
-        Integer from = 0;
         Integer size = 20;
+        Pageable page = PageRequest.of(0, size, Sort.by("id").ascending());
 
         mockMvc.perform(get("/items").header("X-Sharer-User-Id", userId))
                 .andExpect(status().isOk())
                 .andExpect(content().json("[]"));
 
-        verify(itemService, times(1)).getItemsByUserId(userId, from, size);
+        verify(itemService, times(1)).getItemsByUserId(userId, page);
     }
 
     @Test
@@ -76,8 +83,8 @@ class ItemControllerTest {
         Long userId = 1L;
         Long itemId1 = 1L;
         Long itemId2 = 2L;
-        Integer from = 0;
         Integer size = 20;
+        Pageable page = PageRequest.of(0, size, Sort.by("id").ascending());
 
         ItemDto itemDto1 = initItemDto();
         ItemDto itemDto2 = initItemDto();
@@ -94,29 +101,29 @@ class ItemControllerTest {
 
         String json = objectMapper.writeValueAsString(expectedItemDto);
 
-        when(itemService.getItemsByUserId(userId, from, size)).thenReturn(expectedItem);
-        when(itemMapper.itemWithBookingsAndCommentsToDtos(expectedItem)).thenReturn(expectedItemDto);
+        when(itemService.getItemsByUserId(userId, page)).thenReturn(expectedItem);
+        when(itemService.itemWithBookingsAndCommentsToDtos(expectedItem)).thenReturn(expectedItemDto);
 
         mockMvc.perform(get("/items").header("X-Sharer-User-Id", userId))
                 .andExpect(status().isOk())
                 .andExpect(content().json(json));
 
-        verify(itemService, times(1)).getItemsByUserId(userId, from, size);
-        verify(itemMapper, times(1)).itemWithBookingsAndCommentsToDtos(expectedItem);
+        verify(itemService, times(1)).getItemsByUserId(userId, page);
+        verify(itemService, times(1)).itemWithBookingsAndCommentsToDtos(expectedItem);
     }
 
     @Test
     void getItemsByUserId_shouldResponseWithNotFound_ifUserDoesNotExist() throws Exception {
         Long userId = 1L;
-        Integer from = 0;
         Integer size = 20;
+        Pageable page = PageRequest.of(0, size, Sort.by("id").ascending());
 
-        when(itemService.getItemsByUserId(userId, from, size)).thenThrow(NotFoundException.class);
+        when(itemService.getItemsByUserId(userId, page)).thenThrow(NotFoundException.class);
 
         mockMvc.perform(get("/items").header("X-Sharer-User-Id", userId))
                 .andExpect(status().isNotFound());
 
-        verify(itemService, times(1)).getItemsByUserId(userId, from, size);
+        verify(itemService, times(1)).getItemsByUserId(userId, page);
     }
 
     @Test
@@ -134,14 +141,14 @@ class ItemControllerTest {
         String json = objectMapper.writeValueAsString(itemDto);
 
         when(itemService.getItemById(itemId)).thenReturn(item);
-        when(itemMapper.itemWithBookingsAndCommentsToDto(item)).thenReturn(itemDto);
+        when(itemService.itemWithBookingsAndCommentsToDto(item)).thenReturn(itemDto);
 
         mockMvc.perform(get("/items/{id}", itemId).header("X-Sharer-User-Id", userId))
                 .andExpect(status().isOk())
                 .andExpect(content().json(json));
 
         verify(itemService, times(1)).getItemById(itemId);
-        verify(itemMapper, times(1)).itemWithBookingsAndCommentsToDto(item);
+        verify(itemService, times(1)).itemWithBookingsAndCommentsToDto(item);
     }
 
     @Test
@@ -157,14 +164,14 @@ class ItemControllerTest {
         String json = objectMapper.writeValueAsString(itemDto);
 
         when(itemService.getItemById(itemId)).thenReturn(item);
-        when(itemMapper.itemWithCommentsToDto(item)).thenReturn(itemDto);
+        when(itemService.itemWithCommentsToDto(item)).thenReturn(itemDto);
 
         mockMvc.perform(get("/items/{id}", itemId).header("X-Sharer-User-Id", userId))
                 .andExpect(status().isOk())
                 .andExpect(content().json(json));
 
         verify(itemService, times(1)).getItemById(itemId);
-        verify(itemMapper, times(1)).itemWithCommentsToDto(item);
+        verify(itemService, times(1)).itemWithCommentsToDto(item);
     }
 
     @Test
@@ -189,7 +196,7 @@ class ItemControllerTest {
 
         String json = objectMapper.writeValueAsString(itemDto);
 
-        when(itemMapper.toItem(itemDto, userId)).thenReturn(item);
+        when(itemMapper.toItem(itemDto)).thenReturn(item);
         when(itemService.createItem(item)).thenReturn(item);
         when(itemMapper.toDto(item)).thenReturn(itemDto);
 
@@ -197,7 +204,7 @@ class ItemControllerTest {
                         .contentType("application/json").content(json))
                 .andExpect(status().isCreated());
 
-        verify(itemMapper, times(1)).toItem(itemDto, userId);
+        verify(itemMapper, times(1)).toItem(itemDto);
         verify(itemService, times(1)).createItem(item);
         verify(itemMapper, times(1)).toDto(item);
     }
@@ -211,14 +218,14 @@ class ItemControllerTest {
 
         String json = objectMapper.writeValueAsString(itemDto);
 
-        when(itemMapper.toItem(itemDto, userId)).thenReturn(item);
+        when(itemMapper.toItem(itemDto)).thenReturn(item);
         when(itemService.createItem(item)).thenThrow(NotFoundException.class);
 
         mockMvc.perform(post("/items").header("X-Sharer-User-Id", userId)
                         .contentType("application/json").content(json))
                 .andExpect(status().isNotFound());
 
-        verify(itemMapper, times(1)).toItem(itemDto, userId);
+        verify(itemMapper, times(1)).toItem(itemDto);
         verify(itemService, times(1)).createItem(item);
         verify(itemMapper, never()).toDto(item);
     }
@@ -247,7 +254,7 @@ class ItemControllerTest {
 
         String json = objectMapper.writeValueAsString(itemDto);
 
-        when(itemMapper.toItem(itemDto, userId)).thenReturn(item);
+        when(itemMapper.toItem(itemDto)).thenReturn(item);
         when(itemService.updateItem(item)).thenReturn(item);
         when(itemMapper.toDto(item)).thenReturn(itemDto);
 
@@ -255,7 +262,7 @@ class ItemControllerTest {
                         .contentType("application/json").content(json))
                 .andExpect(status().isOk());
 
-        verify(itemMapper, times(1)).toItem(itemDto, userId);
+        verify(itemMapper, times(1)).toItem(itemDto);
         verify(itemService, times(1)).updateItem(item);
         verify(itemMapper, times(1)).toDto(item);
     }
@@ -272,14 +279,14 @@ class ItemControllerTest {
 
         String json = objectMapper.writeValueAsString(itemDto);
 
-        when(itemMapper.toItem(itemDto, userId)).thenReturn(item);
+        when(itemMapper.toItem(itemDto)).thenReturn(item);
         when(itemService.updateItem(item)).thenThrow(NotFoundException.class);
 
         mockMvc.perform(patch("/items/{id}", itemId).header("X-Sharer-User-Id", userId)
                         .contentType("application/json").content(json))
                 .andExpect(status().isNotFound());
 
-        verify(itemMapper, times(1)).toItem(itemDto, userId);
+        verify(itemMapper, times(1)).toItem(itemDto);
         verify(itemService, times(1)).updateItem(item);
         verify(itemMapper, never()).toDto(item);
     }
@@ -296,14 +303,14 @@ class ItemControllerTest {
 
         String json = objectMapper.writeValueAsString(itemDto);
 
-        when(itemMapper.toItem(itemDto, userId)).thenReturn(item);
+        when(itemMapper.toItem(itemDto)).thenReturn(item);
         when(itemService.updateItem(item)).thenThrow(NotFoundException.class);
 
         mockMvc.perform(patch("/items/{id}", itemId).header("X-Sharer-User-Id", userId)
                         .contentType("application/json").content(json))
                 .andExpect(status().isNotFound());
 
-        verify(itemMapper, times(1)).toItem(itemDto, userId);
+        verify(itemMapper, times(1)).toItem(itemDto);
         verify(itemService, times(1)).updateItem(item);
         verify(itemMapper, never()).toDto(item);
     }
@@ -326,33 +333,33 @@ class ItemControllerTest {
     @Test
     void searchItems_shouldReturnEmptyListOfItems_ifSearchTextIsEmpty() throws Exception {
         String text = "";
-        Integer from = 0;
         Integer size = 20;
+        Pageable page = PageRequest.of(0, size);
 
         mockMvc.perform(get("/items/search?text={text}", text))
                 .andExpect(status().isOk())
                 .andExpect(content().json("[]"));
 
-        verify(itemService, never()).searchItems(text, from, size);
+        verify(itemService, never()).searchItems(text, page);
     }
 
     @Test
     void searchItems_shouldReturnEmptyListOfItems() throws Exception {
         String text = "аккумулятор";
-        Integer from = 0;
         Integer size = 20;
+        Pageable page = PageRequest.of(0, size);
 
         List<Item> expectedItem = List.of();
         List<ItemDto> expectedItemDto = List.of();
         String json = objectMapper.writeValueAsString(expectedItemDto);
 
-        when(itemService.searchItems(text, from, size)).thenReturn(expectedItem);
+        when(itemService.searchItems(text, page)).thenReturn(expectedItem);
 
         mockMvc.perform(get("/items/search?text={text}", text))
                 .andExpect(status().isOk())
                 .andExpect(content().json(json));
 
-        verify(itemService, times(1)).searchItems(text, from, size);
+        verify(itemService, times(1)).searchItems(text, page);
     }
 
     @Test
@@ -360,8 +367,8 @@ class ItemControllerTest {
         String text = "дрель";
         Long itemId1 = 1L;
         Long itemId2 = 2L;
-        Integer from = 0;
         Integer size = 20;
+        Pageable page = PageRequest.of(0, size);
 
         ItemDto itemDto1 = initItemDto();
         ItemDto itemDto2 = initItemDto();
@@ -378,14 +385,14 @@ class ItemControllerTest {
 
         String json = objectMapper.writeValueAsString(expectedItemDto);
 
-        when(itemService.searchItems(text, from, size)).thenReturn(expectedItem);
+        when(itemService.searchItems(text, page)).thenReturn(expectedItem);
         when(itemMapper.toDtos(expectedItem)).thenReturn(expectedItemDto);
 
         mockMvc.perform(get("/items/search?text={text}", text))
                 .andExpect(status().isOk())
                 .andExpect(content().json(json));
 
-        verify(itemService, times(1)).searchItems(text, from, size);
+        verify(itemService, times(1)).searchItems(text, page);
         verify(itemMapper, times(1)).toDtos(expectedItem);
     }
 
@@ -400,7 +407,7 @@ class ItemControllerTest {
 
         String json = objectMapper.writeValueAsString(commentForCreateDto);
 
-        when(commentMapper.toComment(commentForCreateDto, itemId, userId)).thenReturn(comment);
+        when(commentMapper.toComment(commentForCreateDto)).thenReturn(comment);
         when(itemService.createComment(comment)).thenReturn(comment);
         when(commentMapper.toDto(comment)).thenReturn(commentForResponseDto);
 
@@ -408,7 +415,7 @@ class ItemControllerTest {
                         .contentType("application/json").content(json))
                 .andExpect(status().isOk());
 
-        verify(commentMapper, times(1)).toComment(commentForCreateDto, itemId, userId);
+        verify(commentMapper, times(1)).toComment(commentForCreateDto);
         verify(itemService, times(1)).createComment(comment);
         verify(commentMapper, times(1)).toDto(comment);
     }
@@ -423,14 +430,14 @@ class ItemControllerTest {
 
         String json = objectMapper.writeValueAsString(commentForCreateDto);
 
-        when(commentMapper.toComment(commentForCreateDto, itemId, userId)).thenReturn(comment);
+        when(commentMapper.toComment(commentForCreateDto)).thenReturn(comment);
         when(itemService.createComment(comment)).thenThrow(NotFoundException.class);
 
         mockMvc.perform(post("/items/{id}/comment", itemId).header("X-Sharer-User-Id", userId)
                         .contentType("application/json").content(json))
                 .andExpect(status().isNotFound());
 
-        verify(commentMapper, times(1)).toComment(commentForCreateDto, itemId, userId);
+        verify(commentMapper, times(1)).toComment(commentForCreateDto);
         verify(itemService, times(1)).createComment(comment);
         verify(commentMapper, never()).toDto(comment);
     }
@@ -445,14 +452,14 @@ class ItemControllerTest {
 
         String json = objectMapper.writeValueAsString(commentForCreateDto);
 
-        when(commentMapper.toComment(commentForCreateDto, itemId, userId)).thenReturn(comment);
+        when(commentMapper.toComment(commentForCreateDto)).thenReturn(comment);
         when(itemService.createComment(comment)).thenThrow(ValidationException.class);
 
         mockMvc.perform(post("/items/{id}/comment", itemId).header("X-Sharer-User-Id", userId)
                         .contentType("application/json").content(json))
                 .andExpect(status().isBadRequest());
 
-        verify(commentMapper, times(1)).toComment(commentForCreateDto, itemId, userId);
+        verify(commentMapper, times(1)).toComment(commentForCreateDto);
         verify(itemService, times(1)).createComment(comment);
         verify(commentMapper, never()).toDto(comment);
     }

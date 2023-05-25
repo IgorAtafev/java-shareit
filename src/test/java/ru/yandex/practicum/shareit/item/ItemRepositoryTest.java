@@ -5,9 +5,10 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import ru.yandex.practicum.shareit.user.User;
+
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -44,8 +45,8 @@ class ItemRepositoryTest {
     @Test
     void searchItemsByText_shouldReturnEmptyListOfItems() {
         String text = "аккумулятор";
-        Page<Item> items = itemRepository.searchItemsByText(text, page);
-        assertThat(items.getContent()).isEmpty();
+        List<Item> items = itemRepository.searchItemsByText(text, page);
+        assertThat(items).isEmpty();
     }
 
     @Test
@@ -56,9 +57,9 @@ class ItemRepositoryTest {
         entityManager.persist(item2);
         entityManager.persist(item3);
 
-        Page<Item> items = itemRepository.searchItemsByText(text, page);
+        List<Item> items = itemRepository.searchItemsByText(text, page);
 
-        assertThat(items.getContent()).hasSize(3).contains(item1, item2, item3);
+        assertThat(items).hasSize(3).contains(item1, item2, item3);
     }
 
     @Test
@@ -73,9 +74,9 @@ class ItemRepositoryTest {
         entityManager.persist(item2);
         entityManager.persist(item3);
 
-        Page<Item> items = itemRepository.searchItemsByText(text, page);
+        List<Item> items = itemRepository.searchItemsByText(text, page);
 
-        assertThat(items.getContent()).hasSize(2).contains(item2, item3);
+        assertThat(items).hasSize(2).contains(item2, item3);
     }
 
     @Test
@@ -89,9 +90,9 @@ class ItemRepositoryTest {
         entityManager.persist(item2);
         entityManager.persist(item3);
 
-        Page<Item> items = itemRepository.searchItemsByText(text, page);
+        List<Item> items = itemRepository.searchItemsByText(text, page);
 
-        assertThat(items.getContent()).hasSize(2).contains(item1, item3);
+        assertThat(items).hasSize(2).contains(item1, item3);
     }
 
     @Test
@@ -106,9 +107,9 @@ class ItemRepositoryTest {
         entityManager.persist(item2);
         entityManager.persist(item3);
 
-        Page<Item> items = itemRepository.searchItemsByText(text, page);
+        List<Item> items = itemRepository.searchItemsByText(text, page);
 
-        assertThat(items.getContent()).isEmpty();
+        assertThat(items).isEmpty();
     }
 
     private Item initItem() {

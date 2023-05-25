@@ -11,6 +11,7 @@ import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import ru.yandex.practicum.shareit.item.Item;
 import ru.yandex.practicum.shareit.user.User;
@@ -55,9 +56,8 @@ class BookingServiceImplTest {
     @Test
     void getBookingsByUserId_shouldReturnAListOfUserBookings() {
         Long userId = 1L;
-        Integer from = 0;
         Integer size = 20;
-        PageRequest page = PageRequest.of(0, size, Sort.by("start").descending());
+        Pageable page = PageRequest.of(0, size, Sort.by("start").descending());
 
         Booking booking1 = initBooking();
         Booking booking2 = initBooking();
@@ -94,7 +94,7 @@ class BookingServiceImplTest {
         List<Booking> expected = List.of(booking1, booking2, booking3, booking4);
 
         when(bookingRepository.findAll(predicate, page)).thenReturn(new PageImpl<>(expected));
-        assertThat(bookingService.getBookingsByUserId(userId, state, from, size)).isEqualTo(expected);
+        assertThat(bookingService.getBookingsByUserId(userId, state, page)).isEqualTo(expected);
         verify(userRepository, times(1)).existsById(userId);
         verify(bookingRepository, times(1)).findAll(predicate, page);
 
@@ -106,7 +106,7 @@ class BookingServiceImplTest {
         when(bookingRepository.findAll(predicate, page)).thenReturn(new PageImpl<>(expected));
         try (MockedStatic<LocalDateTime> mockDateTime = mockStatic(LocalDateTime.class)) {
             mockDateTime.when(LocalDateTime::now).thenReturn(currentDateTime);
-            assertThat(bookingService.getBookingsByUserId(userId, state, from, size)).isEqualTo(expected);
+            assertThat(bookingService.getBookingsByUserId(userId, state, page)).isEqualTo(expected);
         }
 
         state = "PAST";
@@ -117,7 +117,7 @@ class BookingServiceImplTest {
         when(bookingRepository.findAll(predicate, page)).thenReturn(new PageImpl<>(expected));
         try (MockedStatic<LocalDateTime> mockDateTime = mockStatic(LocalDateTime.class)) {
             mockDateTime.when(LocalDateTime::now).thenReturn(currentDateTime);
-            assertThat(bookingService.getBookingsByUserId(userId, state, from, size)).isEqualTo(expected);
+            assertThat(bookingService.getBookingsByUserId(userId, state, page)).isEqualTo(expected);
         }
 
         state = "FUTURE";
@@ -128,7 +128,7 @@ class BookingServiceImplTest {
         when(bookingRepository.findAll(predicate, page)).thenReturn(new PageImpl<>(expected));
         try (MockedStatic<LocalDateTime> mockDateTime = mockStatic(LocalDateTime.class)) {
             mockDateTime.when(LocalDateTime::now).thenReturn(currentDateTime);
-            assertThat(bookingService.getBookingsByUserId(userId, state, from, size)).isEqualTo(expected);
+            assertThat(bookingService.getBookingsByUserId(userId, state, page)).isEqualTo(expected);
         }
 
         state = "WAITING";
@@ -137,7 +137,7 @@ class BookingServiceImplTest {
         expected = List.of(booking1, booking2);
 
         when(bookingRepository.findAll(predicate, page)).thenReturn(new PageImpl<>(expected));
-        assertThat(bookingService.getBookingsByUserId(userId, state, from, size)).isEqualTo(expected);
+        assertThat(bookingService.getBookingsByUserId(userId, state, page)).isEqualTo(expected);
 
         state = "REJECTED";
         addExpression = qBooking.status.eq(BookingStatus.REJECTED);
@@ -145,24 +145,23 @@ class BookingServiceImplTest {
         expected = List.of(booking3, booking4);
 
         when(bookingRepository.findAll(predicate, page)).thenReturn(new PageImpl<>(expected));
-        assertThat(bookingService.getBookingsByUserId(userId, state, from, size)).isEqualTo(expected);
+        assertThat(bookingService.getBookingsByUserId(userId, state, page)).isEqualTo(expected);
 
         assertThatExceptionOfType(ValidationException.class)
-                .isThrownBy(() -> bookingService.getBookingsByUserId(userId, "UNDEFINED", from, size));
+                .isThrownBy(() -> bookingService.getBookingsByUserId(userId, "UNDEFINED", page));
     }
 
     @Test
     void getBookingsByUserId_shouldThrowAnException_ifUserDoesNotExist() {
         Long userId = 1L;
-        Integer from = 0;
         Integer size = 20;
-        PageRequest page = PageRequest.of(0, size, Sort.by("start").descending());
         String state = "ALL";
+        Pageable page = PageRequest.of(0, size, Sort.by("start").descending());
 
         when(userRepository.existsById(userId)).thenReturn(false);
 
         assertThatExceptionOfType(NotFoundException.class)
-                .isThrownBy(() -> bookingService.getBookingsByUserId(userId, state, from, size));
+                .isThrownBy(() -> bookingService.getBookingsByUserId(userId, state, page));
 
         verify(userRepository, times(1)).existsById(userId);
         verifyNoMoreInteractions(userRepository);
@@ -171,9 +170,8 @@ class BookingServiceImplTest {
     @Test
     void getBookingsByItemOwnerId_shouldReturnAListOfBookingsForAllTheUserItems() {
         Long userId = 1L;
-        Integer from = 0;
         Integer size = 20;
-        PageRequest page = PageRequest.of(0, size, Sort.by("start").descending());
+        Pageable page = PageRequest.of(0, size, Sort.by("start").descending());
 
         Booking booking1 = initBooking();
         Booking booking2 = initBooking();
@@ -210,7 +208,7 @@ class BookingServiceImplTest {
         List<Booking> expected = List.of(booking1, booking2, booking3, booking4);
 
         when(bookingRepository.findAll(predicate, page)).thenReturn(new PageImpl<>(expected));
-        assertThat(bookingService.getBookingsByItemOwnerId(userId, state, from, size)).isEqualTo(expected);
+        assertThat(bookingService.getBookingsByItemOwnerId(userId, state, page)).isEqualTo(expected);
         verify(userRepository, times(1)).existsById(userId);
         verify(bookingRepository, times(1)).findAll(predicate, page);
 
@@ -222,7 +220,7 @@ class BookingServiceImplTest {
         when(bookingRepository.findAll(predicate, page)).thenReturn(new PageImpl<>(expected));
         try (MockedStatic<LocalDateTime> mockDateTime = mockStatic(LocalDateTime.class)) {
             mockDateTime.when(LocalDateTime::now).thenReturn(currentDateTime);
-            assertThat(bookingService.getBookingsByItemOwnerId(userId, state, from, size)).isEqualTo(expected);
+            assertThat(bookingService.getBookingsByItemOwnerId(userId, state, page)).isEqualTo(expected);
         }
 
         state = "PAST";
@@ -233,7 +231,7 @@ class BookingServiceImplTest {
         when(bookingRepository.findAll(predicate, page)).thenReturn(new PageImpl<>(expected));
         try (MockedStatic<LocalDateTime> mockDateTime = mockStatic(LocalDateTime.class)) {
             mockDateTime.when(LocalDateTime::now).thenReturn(currentDateTime);
-            assertThat(bookingService.getBookingsByItemOwnerId(userId, state, from, size)).isEqualTo(expected);
+            assertThat(bookingService.getBookingsByItemOwnerId(userId, state, page)).isEqualTo(expected);
         }
 
         state = "FUTURE";
@@ -244,7 +242,7 @@ class BookingServiceImplTest {
         when(bookingRepository.findAll(predicate, page)).thenReturn(new PageImpl<>(expected));
         try (MockedStatic<LocalDateTime> mockDateTime = mockStatic(LocalDateTime.class)) {
             mockDateTime.when(LocalDateTime::now).thenReturn(currentDateTime);
-            assertThat(bookingService.getBookingsByItemOwnerId(userId, state, from, size)).isEqualTo(expected);
+            assertThat(bookingService.getBookingsByItemOwnerId(userId, state, page)).isEqualTo(expected);
         }
 
         state = "WAITING";
@@ -253,7 +251,7 @@ class BookingServiceImplTest {
         expected = List.of(booking1, booking2);
 
         when(bookingRepository.findAll(predicate, page)).thenReturn(new PageImpl<>(expected));
-        assertThat(bookingService.getBookingsByItemOwnerId(userId, state, from, size)).isEqualTo(expected);
+        assertThat(bookingService.getBookingsByItemOwnerId(userId, state, page)).isEqualTo(expected);
 
         state = "REJECTED";
         addExpression = qBooking.status.eq(BookingStatus.REJECTED);
@@ -261,24 +259,23 @@ class BookingServiceImplTest {
         expected = List.of(booking3, booking4);
 
         when(bookingRepository.findAll(predicate, page)).thenReturn(new PageImpl<>(expected));
-        assertThat(bookingService.getBookingsByItemOwnerId(userId, state, from, size)).isEqualTo(expected);
+        assertThat(bookingService.getBookingsByItemOwnerId(userId, state, page)).isEqualTo(expected);
 
         assertThatExceptionOfType(ValidationException.class)
-                .isThrownBy(() -> bookingService.getBookingsByItemOwnerId(userId, "UNDEFINED", from, size));
+                .isThrownBy(() -> bookingService.getBookingsByItemOwnerId(userId, "UNDEFINED", page));
     }
 
     @Test
     void getBookingsByItemOwnerId_shouldThrowAnException_ifUserDoesNotExist() {
         Long userId = 1L;
-        Integer from = 0;
         Integer size = 20;
-        PageRequest page = PageRequest.of(0, size, Sort.by("start").descending());
         String state = "ALL";
+        Pageable page = PageRequest.of(0, size, Sort.by("start").descending());
 
         when(userRepository.existsById(userId)).thenReturn(false);
 
         assertThatExceptionOfType(NotFoundException.class)
-                .isThrownBy(() -> bookingService.getBookingsByItemOwnerId(userId, state, from, size));
+                .isThrownBy(() -> bookingService.getBookingsByItemOwnerId(userId, state, page));
 
         verify(userRepository, times(1)).existsById(userId);
         verifyNoMoreInteractions(userRepository);

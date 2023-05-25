@@ -1,5 +1,7 @@
 package ru.yandex.practicum.shareit.booking;
 
+import org.springframework.data.domain.Pageable;
+
 import java.util.List;
 import java.util.Map;
 
@@ -12,11 +14,10 @@ public interface BookingService {
      *
      * @param userId
      * @param state
-     * @param from
-     * @param size
+     * @param page
      * @return list of bookings
      */
-    Iterable<Booking> getBookingsByUserId(Long userId, String state, Integer from, Integer size);
+    Iterable<Booking> getBookingsByUserId(Long userId, String state, Pageable page);
 
     /**
      * Returns a list of bookings for all the user's items
@@ -25,11 +26,10 @@ public interface BookingService {
      *
      * @param userId
      * @param state
-     * @param from
-     * @param size
+     * @param page
      * @return list of bookings
      */
-    Iterable<Booking> getBookingsByItemOwnerId(Long userId, String state, Integer from, Integer size);
+    Iterable<Booking> getBookingsByItemOwnerId(Long userId, String state, Pageable page);
 
     /**
      * Returns booking by id

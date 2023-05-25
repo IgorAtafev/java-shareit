@@ -2,6 +2,9 @@ package ru.yandex.practicum.shareit.request;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -13,10 +16,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import ru.yandex.practicum.shareit.user.UserService;
 import ru.yandex.practicum.shareit.validator.ValidationOnCreate;
 
 import javax.validation.Valid;
-import javax.validation.constraints.Min;
+import javax.validation.constraints.Positive;
+import javax.validation.constraints.PositiveOrZero;
 import java.util.List;
 
 @RestController
@@ -29,20 +34,22 @@ public class ItemRequestController {
     private static final String USER_ID_REQUEST_HEADER = "X-Sharer-User-Id";
 
     private final ItemRequestService itemRequestService;
+    private final UserService userService;
     private final ItemRequestMapper itemRequestMapper;
 
     @GetMapping("/all")
     public List<ItemRequestDto> getItemRequestsAll(
             @RequestHeader(USER_ID_REQUEST_HEADER) Long userId,
-            @RequestParam(defaultValue = "0") @Min(0) Integer from,
-            @RequestParam(defaultValue = "20") @Min(1) Integer size
+            @RequestParam(defaultValue = "0") @PositiveOrZero Integer from,
+            @RequestParam(defaultValue = "20") @Positive Integer size
     ) {
-        return itemRequestMapper.itemRequestWithItemsToDtos(itemRequestService.getItemRequestsAll(userId, from, size));
+        Pageable page = PageRequest.of(from / size, size, Sort.by("created").descending());
+        return itemRequestService.itemRequestWithItemsToDtos(itemRequestService.getItemRequestsAll(userId, page));
     }
 
     @GetMapping
     public List<ItemRequestDto> getItemRequestsByUserId(@RequestHeader(USER_ID_REQUEST_HEADER) Long userId) {
-        return itemRequestMapper.itemRequestWithItemsToDtos(itemRequestService.getItemRequestsByUserId(userId));
+        return itemRequestService.itemRequestWithItemsToDtos(itemRequestService.getItemRequestsByUserId(userId));
     }
 
     @GetMapping("/{id}")
@@ -50,7 +57,7 @@ public class ItemRequestController {
             @RequestHeader(USER_ID_REQUEST_HEADER) Long userId,
             @PathVariable Long id
     ) {
-        return itemRequestMapper.itemRequestWithItemsToDto(itemRequestService.getItemRequestById(id, userId));
+        return itemRequestService.itemRequestWithItemsToDto(itemRequestService.getItemRequestById(id, userId));
     }
 
     @PostMapping
@@ -61,8 +68,16 @@ public class ItemRequestController {
             @RequestBody @Valid ItemRequestDto itemRequestDto
     ) {
         log.info("Request received POST /requests: '{}', userId: {}", itemRequestDto, userId);
-        return itemRequestMapper.toDto(
-                itemRequestService.createRequest(itemRequestMapper.toItemRequest(itemRequestDto, userId))
-        );
+        return itemRequestMapper.toDto(itemRequestService.createRequest(toItemRequest(itemRequestDto, userId)));
+    }
+
+    private ItemRequest toItemRequest(ItemRequestDto itemRequestDto, Long authorId) {
+        ItemRequest itemRequest = itemRequestMapper.toItemRequest(itemRequestDto);
+
+        itemRequest.setId(itemRequestDto.getId());
+        itemRequest.setDescription(itemRequestDto.getDescription());
+        itemRequest.setRequestor(userService.getUserById(authorId));
+
+        return itemRequest;
     }
 }

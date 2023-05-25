@@ -1,11 +1,10 @@
 package ru.yandex.practicum.shareit.request;
 
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import java.util.Collection;
+import java.util.List;
 
 public interface ItemRequestRepository extends JpaRepository<ItemRequest, Long> {
 
@@ -17,7 +16,7 @@ public interface ItemRequestRepository extends JpaRepository<ItemRequest, Long> 
      * @param page
      * @return list of requests
      */
-    Page<ItemRequest> findByRequesterIdNot(Long userId, Pageable page);
+    List<ItemRequest> findByRequestorIdNot(Long userId, Pageable page);
 
     /**
      * Returns a list of user requests
@@ -26,5 +25,5 @@ public interface ItemRequestRepository extends JpaRepository<ItemRequest, Long> 
      * @param sort
      * @return list of requests
      */
-    Collection<ItemRequest> findByRequesterId(Long requesterId, Sort sort);
+    List<ItemRequest> findByRequestorId(Long requesterId, Sort sort);
 }

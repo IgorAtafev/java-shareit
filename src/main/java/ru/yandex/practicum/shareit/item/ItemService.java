@@ -1,5 +1,7 @@
 package ru.yandex.practicum.shareit.item;
 
+import org.springframework.data.domain.Pageable;
+
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -12,11 +14,10 @@ public interface ItemService {
      * If the user is not found throws NotFoundException
      *
      * @param userId
-     * @param from
-     * @param size
+     * @param page
      * @return list of items
      */
-    Collection<Item> getItemsByUserId(Long userId, Integer from, Integer size);
+    Collection<Item> getItemsByUserId(Long userId, Pageable page);
 
     /**
      * Returns item by id
@@ -52,11 +53,10 @@ public interface ItemService {
      * Results should be returned page by page
      *
      * @param text
-     * @param from
-     * @param size
+     * @param page
      * @return list of items
      */
-    Collection<Item> searchItems(String text, Integer from, Integer size);
+    Collection<Item> searchItems(String text, Pageable page);
 
     /**
      * Creates a new comment for the item by the user
@@ -85,6 +85,30 @@ public interface ItemService {
      * @return list of comments
      */
     List<Comment> getCommentsByItemId(Long itemId);
+
+    /**
+     * Returns a list of items with booking and comments
+     *
+     * @param items
+     * @return
+     */
+    List<ItemDto> itemWithBookingsAndCommentsToDtos(Collection<Item> items);
+
+    /**
+     * Returns item with bookings and comments
+     *
+     * @param item
+     * @return
+     */
+    ItemDto itemWithBookingsAndCommentsToDto(Item item);
+
+    /**
+     * Returns item with comments
+     *
+     * @param item
+     * @return
+     */
+    ItemDto itemWithCommentsToDto(Item item);
 
     /**
      * Returns a list of items for request IDs

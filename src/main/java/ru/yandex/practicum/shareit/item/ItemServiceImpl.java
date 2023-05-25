@@ -1,11 +1,14 @@
 package ru.yandex.practicum.shareit.item;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.yandex.practicum.shareit.booking.Booking;
+import ru.yandex.practicum.shareit.booking.BookingForItemsMapper;
 import ru.yandex.practicum.shareit.booking.BookingRepository;
+import ru.yandex.practicum.shareit.booking.BookingService;
 import ru.yandex.practicum.shareit.booking.BookingStatus;
 import ru.yandex.practicum.shareit.user.UserRepository;
 import ru.yandex.practicum.shareit.validator.NotFoundException;
@@ -19,7 +22,6 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
-@Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class ItemServiceImpl implements ItemService {
 
@@ -27,17 +29,22 @@ public class ItemServiceImpl implements ItemService {
     private final UserRepository userRepository;
     private final BookingRepository bookingRepository;
     private final CommentRepository commentRepository;
+    private final ItemMapper itemMapper;
+    private final CommentMapper commentMapper;
+    private final BookingForItemsMapper bookingForItemsMapper;
+    private final BookingService bookingService;
 
+    @Transactional(readOnly = true)
     @Override
-    public Collection<Item> getItemsByUserId(Long userId, Integer from, Integer size) {
+    public Collection<Item> getItemsByUserId(Long userId, Pageable page) {
         if (!userRepository.existsById(userId)) {
             throw new NotFoundException(String.format("User with id %d does not exist", userId));
         }
 
-        PageRequest page = PageRequest.of(from / size, size, Sort.by("id").ascending());
-        return itemRepository.findByOwnerId(userId, page).getContent();
+        return itemRepository.findByOwnerId(userId, page);
     }
 
+    @Transactional(readOnly = true)
     @Override
     public Item getItemById(Long id) {
         return itemRepository.findById(id).orElseThrow(
@@ -61,10 +68,10 @@ public class ItemServiceImpl implements ItemService {
         return itemRepository.save(item);
     }
 
+    @Transactional(readOnly = true)
     @Override
-    public Collection<Item> searchItems(String text, Integer from, Integer size) {
-        PageRequest page = PageRequest.of(from / size, size);
-        return itemRepository.searchItemsByText(text, page).getContent();
+    public Collection<Item> searchItems(String text, Pageable page) {
+        return itemRepository.searchItemsByText(text, page);
     }
 
     @Transactional
@@ -95,6 +102,17 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
+    public Map<Long, List<Item>> getItemsByRequestIds(List<Long> requestIds) {
+        return itemRepository.findByRequestIdIn(requestIds, Sort.by("id").ascending()).stream()
+                .collect(Collectors.groupingBy(item -> item.getRequest().getId()));
+    }
+
+    @Override
+    public List<Item> getItemsByRequestId(Long requestId) {
+        return new ArrayList<>(itemRepository.findByRequestId(requestId, Sort.by("id").ascending()));
+    }
+
+    @Override
     public Map<Long, List<Comment>> getCommentsByItemIds(List<Long> itemIds) {
         return commentRepository.findByItemIdIn(itemIds, Sort.by("created").descending()).stream()
                 .collect(Collectors.groupingBy(comment -> comment.getItem().getId()));
@@ -106,13 +124,57 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public Map<Long, List<Item>> getItemsByRequestIds(List<Long> requestIds) {
-        return itemRepository.findByRequestIdIn(requestIds, Sort.by("id").ascending()).stream()
-                .collect(Collectors.groupingBy(item -> item.getRequest().getId()));
+    public List<ItemDto> itemWithBookingsAndCommentsToDtos(Collection<Item> items) {
+        List<ItemDto> itemDtos = itemMapper.toDtos(items);
+
+        if (itemDtos.isEmpty()) {
+            return itemDtos;
+        }
+
+        List<Long> itemIds = itemDtos.stream()
+                .map(ItemDto::getId)
+                .collect(Collectors.toList());
+
+        Map<Long, List<Booking>> bookings = bookingService.getBookingsByItemIds(itemIds);
+        Map<Long, List<Comment>> comments = getCommentsByItemIds(itemIds);
+
+        for (ItemDto itemDto : itemDtos) {
+            setLastAndNextBookings(itemDto, bookings.get(itemDto.getId()));
+            setComments(itemDto, comments.get(itemDto.getId()));
+        }
+
+        return itemDtos;
     }
 
     @Override
-    public List<Item> getItemsByRequestId(Long requestId) {
-        return new ArrayList<>(itemRepository.findByRequestId(requestId, Sort.by("id").ascending()));
+    public ItemDto itemWithBookingsAndCommentsToDto(Item item) {
+        ItemDto itemDto = itemMapper.toDto(item);
+        List<Booking> bookings = bookingService.getBookingsByItemId(itemDto.getId());
+        List<Comment> comments = getCommentsByItemId(itemDto.getId());
+
+        setLastAndNextBookings(itemDto, bookings);
+        setComments(itemDto, comments);
+
+        return itemDto;
+    }
+
+    @Override
+    public ItemDto itemWithCommentsToDto(Item item) {
+        ItemDto itemDto = itemMapper.toDto(item);
+        List<Comment> comments = getCommentsByItemId(itemDto.getId());
+
+        setComments(itemDto, comments);
+        return itemDto;
+    }
+
+    private void setLastAndNextBookings(ItemDto itemDto, List<Booking> bookings) {
+        itemDto.setLastBooking(bookingForItemsMapper.toDto(bookingService.getLastBooking(bookings)));
+        itemDto.setNextBooking(bookingForItemsMapper.toDto(bookingService.getNextBooking(bookings)));
+    }
+
+    private void setComments(ItemDto itemDto, List<Comment> comments) {
+        if (comments != null) {
+            itemDto.setComments(commentMapper.toDtos(comments));
+        }
     }
 }

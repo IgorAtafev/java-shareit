@@ -32,7 +32,7 @@ public class ItemRequest {
     private String description;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    private User requester;
+    private User requestor;
 
     @Column
     private LocalDateTime created;

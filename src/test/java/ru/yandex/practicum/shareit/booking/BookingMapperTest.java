@@ -9,11 +9,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import ru.yandex.practicum.shareit.item.Item;
 import ru.yandex.practicum.shareit.item.ItemDto;
 import ru.yandex.practicum.shareit.item.ItemMapper;
-import ru.yandex.practicum.shareit.item.ItemService;
 import ru.yandex.practicum.shareit.user.User;
 import ru.yandex.practicum.shareit.user.UserDto;
 import ru.yandex.practicum.shareit.user.UserMapper;
-import ru.yandex.practicum.shareit.user.UserService;
 
 import java.time.LocalDateTime;
 import java.util.Collections;
@@ -35,12 +33,6 @@ class BookingMapperTest {
 
     @Mock
     private UserMapper userMapper;
-
-    @Mock
-    private ItemService itemService;
-
-    @Mock
-    private UserService userService;
 
     @InjectMocks
     private BookingMapper bookingMapper;
@@ -98,28 +90,12 @@ class BookingMapperTest {
 
     @Test
     void toBooking_shouldReturnBooking() {
-        Long itemId = 1L;
-        Long ownerId = 2L;
         BookingForCreateDto bookingDto = initBookingForCreateDto();
-        bookingDto.setItemId(itemId);
 
-        Item item = initItem();
-        item.setId(itemId);
-        User owner = initUser();
-        owner.setId(ownerId);
-
-        when(itemService.getItemById(itemId)).thenReturn(item);
-        when(userService.getUserById(ownerId)).thenReturn(owner);
-
-        Booking booking = bookingMapper.toBooking(bookingDto, ownerId);
+        Booking booking = bookingMapper.toBooking(bookingDto);
 
         assertThat(booking.getStart()).isEqualTo(start);
         assertThat(booking.getEnd()).isEqualTo(end);
-        assertThat(booking.getItem()).isEqualTo(item);
-        assertThat(booking.getBooker()).isEqualTo(owner);
-
-        verify(itemService, times(1)).getItemById(itemId);
-        verify(userService, times(1)).getUserById(ownerId);
     }
 
     private BookingForResponseDto initBookingForResponseDto() {

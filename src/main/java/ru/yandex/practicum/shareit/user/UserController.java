@@ -43,19 +43,34 @@ public class UserController {
     @ResponseStatus(HttpStatus.CREATED)
     public UserDto createUser(@RequestBody @Valid UserDto userDto) {
         log.info("Request received POST /users: '{}'", userDto);
-        return userMapper.toDto(userService.createUser(userMapper.toUser(userDto)));
+        User user = userMapper.toUser(userDto);
+        return userMapper.toDto(userService.createUser(user));
     }
 
     @PatchMapping("/{id}")
     public UserDto updateUserById(@PathVariable Long id, @RequestBody @Valid UserDto userDto) {
         log.info("Request received PATCH /users/{}: '{}'", id, userDto);
         userDto.setId(id);
-        return userMapper.toDto(userService.updateUser(userMapper.toUser(userDto)));
+        return userMapper.toDto(userService.updateUser(toUser(userDto)));
     }
 
     @DeleteMapping("/{id}")
     public void removeUserById(@PathVariable Long id) {
         log.info("Request received DELETE /users/{}", id);
         userService.removeUserById(id);
+    }
+
+    private User toUser(UserDto userDto) {
+        User user = userMapper.toUser(userDto);
+        User oldUser = userService.getUserById(userDto.getId());
+
+        if (userDto.getEmail() == null) {
+            user.setEmail(oldUser.getEmail());
+        }
+        if (userDto.getName() == null) {
+            user.setName(oldUser.getName());
+        }
+
+        return user;
     }
 }

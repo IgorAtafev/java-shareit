@@ -3,7 +3,7 @@ package ru.yandex.practicum.shareit.booking;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,7 +27,7 @@ public class BookingServiceImpl implements BookingService {
 
     @Transactional(readOnly = true)
     @Override
-    public Iterable<Booking> getBookingsByUserId(Long userId, String state, Integer from, Integer size) {
+    public Iterable<Booking> getBookingsByUserId(Long userId, String state, Pageable page) {
         if (!userRepository.existsById(userId)) {
             throw new NotFoundException(String.format("User with id %d does not exist", userId));
         }
@@ -35,14 +35,13 @@ public class BookingServiceImpl implements BookingService {
         BookingListState bookingListState = getBookingListState(state);
         BooleanExpression expression = QBooking.booking.booker.id.eq(userId);
         Predicate predicate = getPredicateByUserIdAndState(bookingListState, expression);
-        PageRequest page = PageRequest.of(from / size, size, Sort.by("start").descending());
 
         return bookingRepository.findAll(predicate, page).getContent();
     }
 
     @Transactional(readOnly = true)
     @Override
-    public Iterable<Booking> getBookingsByItemOwnerId(Long userId, String state, Integer from, Integer size) {
+    public Iterable<Booking> getBookingsByItemOwnerId(Long userId, String state, Pageable page) {
         if (!userRepository.existsById(userId)) {
             throw new NotFoundException(String.format("User with id %d does not exist", userId));
         }
@@ -50,7 +49,6 @@ public class BookingServiceImpl implements BookingService {
         BookingListState bookingListState = getBookingListState(state);
         BooleanExpression expression = QBooking.booking.item.owner.id.eq(userId);
         Predicate predicate = getPredicateByUserIdAndState(bookingListState, expression);
-        PageRequest page = PageRequest.of(from / size, size, Sort.by("start").descending());
 
         return bookingRepository.findAll(predicate, page).getContent();
     }

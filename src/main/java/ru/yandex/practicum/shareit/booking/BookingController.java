@@ -2,6 +2,9 @@ package ru.yandex.practicum.shareit.booking;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -14,10 +17,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import ru.yandex.practicum.shareit.item.ItemService;
+import ru.yandex.practicum.shareit.user.UserService;
 import ru.yandex.practicum.shareit.validator.ValidationOnCreate;
 
 import javax.validation.Valid;
-import javax.validation.constraints.Min;
+import javax.validation.constraints.Positive;
+import javax.validation.constraints.PositiveOrZero;
 import java.util.List;
 
 @RestController
@@ -30,26 +36,30 @@ public class BookingController {
     private static final String USER_ID_REQUEST_HEADER = "X-Sharer-User-Id";
 
     private final BookingService bookingService;
+    private final ItemService itemService;
+    private final UserService userService;
     private final BookingMapper bookingMapper;
 
     @GetMapping
     public List<BookingForResponseDto> getBookingsByUserId(
             @RequestHeader(USER_ID_REQUEST_HEADER) Long userId,
             @RequestParam(defaultValue = "ALL") String state,
-            @RequestParam(defaultValue = "0") @Min(0) Integer from,
-            @RequestParam(defaultValue = "20") @Min(1) Integer size
+            @RequestParam(defaultValue = "0") @PositiveOrZero Integer from,
+            @RequestParam(defaultValue = "20") @Positive Integer size
     ) {
-        return bookingMapper.toDtos(bookingService.getBookingsByUserId(userId, state, from, size));
+        Pageable page = PageRequest.of(from / size, size, Sort.by("start").descending());
+        return bookingMapper.toDtos(bookingService.getBookingsByUserId(userId, state, page));
     }
 
     @GetMapping("/owner")
     public List<BookingForResponseDto> getBookingsByItemOwnerId(
             @RequestHeader(USER_ID_REQUEST_HEADER) Long userId,
             @RequestParam(defaultValue = "ALL") String state,
-            @RequestParam(defaultValue = "0") @Min(0) Integer from,
-            @RequestParam(defaultValue = "20") @Min(1) Integer size
+            @RequestParam(defaultValue = "0") @PositiveOrZero Integer from,
+            @RequestParam(defaultValue = "20") @Positive Integer size
     ) {
-        return bookingMapper.toDtos(bookingService.getBookingsByItemOwnerId(userId, state, from, size));
+        Pageable page = PageRequest.of(from / size, size, Sort.by("start").descending());
+        return bookingMapper.toDtos(bookingService.getBookingsByItemOwnerId(userId, state, page));
     }
 
     @GetMapping("/{id}")
@@ -68,9 +78,7 @@ public class BookingController {
             @RequestBody @Valid BookingForCreateDto bookingDto
     ) {
         log.info("Request received POST /bookings: '{}', userId: {}", bookingDto, userId);
-        return bookingMapper.toDto(
-                bookingService.createBooking(bookingMapper.toBooking(bookingDto, userId))
-        );
+        return bookingMapper.toDto(bookingService.createBooking(toBooking(bookingDto, userId)));
     }
 
     @PatchMapping("/{id}")
@@ -81,5 +89,16 @@ public class BookingController {
     ) {
         log.info("Request received PATCH /bookings/{}: '{}', userId: {}", id, approved, userId);
         return bookingMapper.toDto(bookingService.approveBookingById(id, approved, userId));
+    }
+
+    private Booking toBooking(BookingForCreateDto bookingDto, Long ownerId) {
+        Booking booking = bookingMapper.toBooking(bookingDto);
+
+        booking.setStart(bookingDto.getStart());
+        booking.setEnd(bookingDto.getEnd());
+        booking.setItem(itemService.getItemById(bookingDto.getItemId()));
+        booking.setBooker(userService.getUserById(ownerId));
+
+        return booking;
     }
 }

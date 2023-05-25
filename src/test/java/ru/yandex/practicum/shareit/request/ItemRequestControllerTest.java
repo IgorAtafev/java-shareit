@@ -11,9 +11,13 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import ru.yandex.practicum.shareit.user.User;
+import ru.yandex.practicum.shareit.user.UserService;
 import ru.yandex.practicum.shareit.validator.ErrorHandler;
 import ru.yandex.practicum.shareit.validator.NotFoundException;
 
@@ -41,6 +45,9 @@ class ItemRequestControllerTest {
     private ItemRequestService itemRequestService;
 
     @Mock
+    private UserService userService;
+
+    @Mock
     private ItemRequestMapper itemRequestMapper;
 
     @InjectMocks
@@ -56,14 +63,14 @@ class ItemRequestControllerTest {
     @Test
     void getItemRequestsAll_shouldReturnEmptyListOfRequests() throws Exception {
         Long userId = 1L;
-        Integer from = 0;
         Integer size = 20;
+        Pageable page = PageRequest.of(0, size, Sort.by("created").descending());
 
         mockMvc.perform(get("/requests/all").header("X-Sharer-User-Id", userId))
                 .andExpect(status().isOk())
                 .andExpect(content().json("[]"));
 
-        verify(itemRequestService, times(1)).getItemRequestsAll(userId, from, size);
+        verify(itemRequestService, times(1)).getItemRequestsAll(userId, page);
     }
 
     @Test
@@ -71,8 +78,8 @@ class ItemRequestControllerTest {
         Long userId = 1L;
         Long itemRequestId1 = 1L;
         Long itemRequestId2 = 2L;
-        Integer from = 0;
         Integer size = 20;
+        Pageable page = PageRequest.of(0, size, Sort.by("created").descending());
 
         ItemRequestDto itemRequestDto1 = initItemRequestDto();
         ItemRequestDto itemRequestDto2 = initItemRequestDto();
@@ -89,29 +96,29 @@ class ItemRequestControllerTest {
 
         String json = objectMapper.writeValueAsString(expectedItemRequestDto);
 
-        when(itemRequestService.getItemRequestsAll(userId, from, size)).thenReturn(expectedItemRequest);
-        when(itemRequestMapper.itemRequestWithItemsToDtos(expectedItemRequest)).thenReturn(expectedItemRequestDto);
+        when(itemRequestService.getItemRequestsAll(userId, page)).thenReturn(expectedItemRequest);
+        when(itemRequestService.itemRequestWithItemsToDtos(expectedItemRequest)).thenReturn(expectedItemRequestDto);
 
         mockMvc.perform(get("/requests/all").header("X-Sharer-User-Id", userId))
                 .andExpect(status().isOk())
                 .andExpect(content().json(json));
 
-        verify(itemRequestService, times(1)).getItemRequestsAll(userId, from, size);
-        verify(itemRequestMapper, times(1)).itemRequestWithItemsToDtos(expectedItemRequest);
+        verify(itemRequestService, times(1)).getItemRequestsAll(userId, page);
+        verify(itemRequestService, times(1)).itemRequestWithItemsToDtos(expectedItemRequest);
     }
 
     @Test
     void getItemRequestsAll_shouldResponseWithNotFound_ifUserDoesNotExist() throws Exception {
         Long userId = 1L;
-        Integer from = 0;
         Integer size = 20;
+        Pageable page = PageRequest.of(0, size, Sort.by("created").descending());
 
-        when(itemRequestService.getItemRequestsAll(userId, from, size)).thenThrow(NotFoundException.class);
+        when(itemRequestService.getItemRequestsAll(userId, page)).thenThrow(NotFoundException.class);
 
         mockMvc.perform(get("/requests/all").header("X-Sharer-User-Id", userId))
                 .andExpect(status().isNotFound());
 
-        verify(itemRequestService, times(1)).getItemRequestsAll(userId, from, size);
+        verify(itemRequestService, times(1)).getItemRequestsAll(userId, page);
     }
 
     @Test
@@ -147,14 +154,14 @@ class ItemRequestControllerTest {
         String json = objectMapper.writeValueAsString(expectedItemRequestDto);
 
         when(itemRequestService.getItemRequestsByUserId(userId)).thenReturn(expectedItemRequest);
-        when(itemRequestMapper.itemRequestWithItemsToDtos(expectedItemRequest)).thenReturn(expectedItemRequestDto);
+        when(itemRequestService.itemRequestWithItemsToDtos(expectedItemRequest)).thenReturn(expectedItemRequestDto);
 
         mockMvc.perform(get("/requests").header("X-Sharer-User-Id", userId))
                 .andExpect(status().isOk())
                 .andExpect(content().json(json));
 
         verify(itemRequestService, times(1)).getItemRequestsByUserId(userId);
-        verify(itemRequestMapper, times(1)).itemRequestWithItemsToDtos(expectedItemRequest);
+        verify(itemRequestService, times(1)).itemRequestWithItemsToDtos(expectedItemRequest);
     }
 
     @Test
@@ -180,14 +187,14 @@ class ItemRequestControllerTest {
         String json = objectMapper.writeValueAsString(itemRequestDto);
 
         when(itemRequestService.getItemRequestById(itemRequestId, userId)).thenReturn(itemRequest);
-        when(itemRequestMapper.itemRequestWithItemsToDto(itemRequest)).thenReturn(itemRequestDto);
+        when(itemRequestService.itemRequestWithItemsToDto(itemRequest)).thenReturn(itemRequestDto);
 
         mockMvc.perform(get("/requests/{id}", itemRequestId).header("X-Sharer-User-Id", userId))
                 .andExpect(status().isOk())
                 .andExpect(content().json(json));
 
         verify(itemRequestService, times(1)).getItemRequestById(itemRequestId, userId);
-        verify(itemRequestMapper, times(1)).itemRequestWithItemsToDto(itemRequest);
+        verify(itemRequestService, times(1)).itemRequestWithItemsToDto(itemRequest);
     }
 
     @Test
@@ -212,7 +219,7 @@ class ItemRequestControllerTest {
 
         String json = objectMapper.writeValueAsString(itemRequestDto);
 
-        when(itemRequestMapper.toItemRequest(itemRequestDto, userId)).thenReturn(itemRequest);
+        when(itemRequestMapper.toItemRequest(itemRequestDto)).thenReturn(itemRequest);
         when(itemRequestService.createRequest(itemRequest)).thenReturn(itemRequest);
         when(itemRequestMapper.toDto(itemRequest)).thenReturn(itemRequestDto);
 
@@ -220,7 +227,7 @@ class ItemRequestControllerTest {
                         .contentType("application/json").content(json))
                 .andExpect(status().isCreated());
 
-        verify(itemRequestMapper, times(1)).toItemRequest(itemRequestDto, userId);
+        verify(itemRequestMapper, times(1)).toItemRequest(itemRequestDto);
         verify(itemRequestService, times(1)).createRequest(itemRequest);
         verify(itemRequestMapper, times(1)).toDto(itemRequest);
     }
@@ -261,7 +268,7 @@ class ItemRequestControllerTest {
         ItemRequest itemRequest = new ItemRequest();
 
         itemRequest.setDescription("Хотел бы воспользоваться щеткой для обуви");
-        itemRequest.setRequester(new User());
+        itemRequest.setRequestor(new User());
 
         return itemRequest;
     }

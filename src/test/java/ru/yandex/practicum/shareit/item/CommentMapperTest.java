@@ -2,35 +2,19 @@ package ru.yandex.practicum.shareit.item;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 import ru.yandex.practicum.shareit.user.User;
-import ru.yandex.practicum.shareit.user.UserService;
 
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
-@ExtendWith(MockitoExtension.class)
 class CommentMapperTest {
 
+    private final CommentMapper commentMapper = new CommentMapper();
+
     private LocalDateTime currentDateTime;
-
-    @Mock
-    private ItemService itemService;
-
-    @Mock
-    private UserService userService;
-
-    @InjectMocks
-    private CommentMapper commentMapper;
 
     @BeforeEach
     void setUp() {
@@ -68,26 +52,9 @@ class CommentMapperTest {
 
     @Test
     void toComment_shouldReturnComment() {
-        Long itemId = 1L;
-        Long authorId = 2L;
         CommentForCreateDto commentDto = initCommentForCreateDto();
-
-        Item item = initItem();
-        item.setId(itemId);
-        User author = initUser();
-        author.setId(authorId);
-
-        when(itemService.getItemById(itemId)).thenReturn(item);
-        when(userService.getUserById(authorId)).thenReturn(author);
-
-        Comment comment = commentMapper.toComment(commentDto, itemId, authorId);
-
+        Comment comment = commentMapper.toComment(commentDto);
         assertThat(comment.getText()).isEqualTo("Комментарий пользователя");
-        assertThat(comment.getItem()).isEqualTo(item);
-        assertThat(comment.getAuthor()).isEqualTo(author);
-
-        verify(itemService, times(1)).getItemById(itemId);
-        verify(userService, times(1)).getUserById(authorId);
     }
 
     private CommentForResponseDto initCommentForResponseDto() {
@@ -118,24 +85,5 @@ class CommentMapperTest {
         comment.setCreated(currentDateTime);
 
         return comment;
-    }
-
-    private Item initItem() {
-        Item item = new Item();
-
-        item.setName("Дрель");
-        item.setDescription("Простая дрель");
-        item.setAvailable(true);
-
-        return item;
-    }
-
-    private User initUser() {
-        User user = new User();
-
-        user.setEmail("user@user.com");
-        user.setName("user");
-
-        return user;
     }
 }

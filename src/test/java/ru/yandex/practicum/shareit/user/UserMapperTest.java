@@ -1,27 +1,15 @@
 package ru.yandex.practicum.shareit.user;
 
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Collections;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
-@ExtendWith(MockitoExtension.class)
 class UserMapperTest {
 
-    @Mock
-    private UserServiceImpl userService;
-
-    @InjectMocks
-    private UserMapper userMapper;
+    private final UserMapper userMapper = new UserMapper();
 
     @Test
     void toDto_shouldReturnUserDto() {
@@ -53,46 +41,12 @@ class UserMapperTest {
 
     @Test
     void toUser_shouldReturnUser() {
-        String userEmail = "user@user.com";
-        String userName = "user";
-        UserDto userDto = new UserDto();
-
-        userDto.setEmail(userEmail);
-        userDto.setName(userName);
+        UserDto userDto = initUserDto();
 
         User user = userMapper.toUser(userDto);
 
-        assertThat(user.getId()).isNull();
-        assertThat(user.getEmail()).isEqualTo(userEmail);
-        assertThat(user.getName()).isEqualTo(userName);
-
-        Long userId = 1L;
-        String updatedEmail = "user@user.com";
-        String updatedName = "updateName";
-
-        userDto.setId(userId);
-        userDto.setEmail(updatedEmail);
-        userDto.setName(updatedName);
-
-        User oldUser = initUser();
-        oldUser.setId(userId);
-
-        when(userService.getUserById(userId)).thenReturn(oldUser);
-
-        user = userMapper.toUser(userDto);
-
-        assertThat(user.getId()).isEqualTo(userId);
-        assertThat(user.getEmail()).isEqualTo(updatedEmail);
-        assertThat(user.getName()).isEqualTo(updatedName);
-
-        verify(userService, times(1)).getUserById(userId);
-
-        userDto.setEmail(null);
-        user = userMapper.toUser(userDto);
+        assertThat(user.getId()).isEqualTo(1L);
         assertThat(user.getEmail()).isEqualTo("user@user.com");
-
-        userDto.setName(null);
-        user = userMapper.toUser(userDto);
         assertThat(user.getName()).isEqualTo("user");
     }
 
