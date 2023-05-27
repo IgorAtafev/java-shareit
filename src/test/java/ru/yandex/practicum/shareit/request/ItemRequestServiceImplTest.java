@@ -9,8 +9,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import ru.yandex.practicum.shareit.item.Item;
-import ru.yandex.practicum.shareit.item.ItemDto;
-import ru.yandex.practicum.shareit.item.ItemMapper;
 import ru.yandex.practicum.shareit.item.ItemService;
 import ru.yandex.practicum.shareit.user.User;
 import ru.yandex.practicum.shareit.user.UserRepository;
@@ -39,12 +37,6 @@ class ItemRequestServiceImplTest {
 
     @Mock
     private ItemService itemService;
-
-    @Mock
-    private ItemRequestMapper itemRequestMapper;
-
-    @Mock
-    private ItemMapper itemMapper;
 
     @InjectMocks
     private ItemRequestServiceImpl itemRequestService;
@@ -203,87 +195,54 @@ class ItemRequestServiceImplTest {
     }
 
     @Test
-    void itemRequestWithItemsToDtos_shouldReturnEmptyListOfItemRequestDto() {
-        assertThat(itemRequestService.itemRequestWithItemsToDtos(Collections.emptyList())).isEmpty();
-    }
-
-    @Test
-    void itemRequestWithItemsToDtos_shouldReturnListOfItemRequestDto() {
+    void setItemsToItemRequests_shouldSetAListOfItemsToRequests() {
         Long itemRequestId1 = 1L;
         Long itemRequestId2 = 2L;
 
         ItemRequest itemRequest1 = initItemRequest();
         ItemRequest itemRequest2 = initItemRequest();
-        ItemRequestDto itemRequestDto1 = initItemRequestDto();
-        ItemRequestDto itemRequestDto2 = initItemRequestDto();
         itemRequest1.setId(itemRequestId1);
         itemRequest2.setId(itemRequestId2);
-        itemRequestDto1.setId(itemRequestId1);
-        itemRequestDto2.setId(itemRequestId2);
 
         List<ItemRequest> itemRequests = List.of(itemRequest1, itemRequest2);
-        List<ItemRequestDto> itemRequestDtos = List.of(itemRequestDto1, itemRequestDto2);
 
         Item item1 = initItem();
         Item item2 = initItem();
         Item item3 = initItem();
-        ItemDto itemDto1 = initItemDto();
-        ItemDto itemDto2 = initItemDto();
-        ItemDto itemDto3 = initItemDto();
 
         List<Long> itemRequestIds = List.of(itemRequestId1, itemRequestId2);
         List<Item> items1 = List.of(item1, item2);
         List<Item> items2 = List.of(item3);
-        List<ItemDto> itemDtos1 = List.of(itemDto1, itemDto2);
-        List<ItemDto> itemDtos2 = List.of(itemDto3);
 
         Map<Long, List<Item>> mapItems = Map.of(itemRequestId1, items1, itemRequestId2, items2);
 
-        when(itemRequestMapper.toDtos(itemRequests)).thenReturn(itemRequestDtos);
         when(itemService.getItemsByRequestIds(itemRequestIds)).thenReturn(mapItems);
-        when(itemMapper.toDtos(items1)).thenReturn(itemDtos1);
-        when(itemMapper.toDtos(items2)).thenReturn(itemDtos2);
 
-        itemRequestDtos = itemRequestService.itemRequestWithItemsToDtos(itemRequests);
+        itemRequestService.setItemsToItemRequests(itemRequests);
 
-        assertThat(itemRequestDtos.get(0).getItems()).isEqualTo(itemDtos1);
-        assertThat(itemRequestDtos.get(1).getItems()).isEqualTo(itemDtos2);
+        assertThat(itemRequests.get(0).getItems()).isEqualTo(items1);
+        assertThat(itemRequests.get(1).getItems()).isEqualTo(items2);
     }
 
     @Test
-    void itemRequestWithItemsToDto_shouldReturnItemRequestDto() {
+    void setItemsToItemRequest_shouldSetTheListOfItemsToTheRequest() {
         Long itemRequestId = 1L;
 
         ItemRequest itemRequest = initItemRequest();
-        ItemRequestDto itemRequestDto = initItemRequestDto();
         itemRequest.setId(itemRequestId);
-        itemRequestDto.setId(itemRequestId);
 
         Item item1 = initItem();
         Item item2 = initItem();
-        ItemDto itemDto1 = initItemDto();
-        ItemDto itemDto2 = initItemDto();
 
         List<Item> items = List.of(item1, item2);
-        List<ItemDto> itemDtos = List.of(itemDto1, itemDto2);
 
-        when(itemRequestMapper.toDto(itemRequest)).thenReturn(itemRequestDto);
         when(itemService.getItemsByRequestId(itemRequestId)).thenReturn(items);
-        when(itemMapper.toDtos(items)).thenReturn(itemDtos);
 
-        itemRequestDto = itemRequestService.itemRequestWithItemsToDto(itemRequest);
+        itemRequestService.setItemsToItemRequest(itemRequest);
 
-        assertThat(itemRequestDto.getItems()).isEqualTo(itemDtos);
+        assertThat(itemRequest.getItems()).isEqualTo(items);
 
-        verify(itemRequestMapper, times(1)).toDto(itemRequest);
         verify(itemService, times(1)).getItemsByRequestId(itemRequestId);
-        verify(itemMapper, times(1)).toDtos(items);
-    }
-
-    private ItemRequestDto initItemRequestDto() {
-        ItemRequestDto itemRequestDto = new ItemRequestDto();
-        itemRequestDto.setDescription("Хотел бы воспользоваться щеткой для обуви");
-        return itemRequestDto;
     }
 
     private ItemRequest initItemRequest() {
@@ -293,16 +252,6 @@ class ItemRequestServiceImplTest {
         itemRequest.setRequestor(new User());
 
         return itemRequest;
-    }
-
-    private ItemDto initItemDto() {
-        ItemDto itemDto = new ItemDto();
-
-        itemDto.setName("Дрель");
-        itemDto.setDescription("Простая дрель");
-        itemDto.setAvailable(true);
-
-        return itemDto;
     }
 
     private Item initItem() {

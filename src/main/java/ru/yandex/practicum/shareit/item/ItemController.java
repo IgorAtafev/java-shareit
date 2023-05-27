@@ -50,16 +50,23 @@ public class ItemController {
             @RequestParam(defaultValue = "20") @Positive Integer size
     ) {
         Pageable page = PageRequest.of(from / size, size, Sort.by("id").ascending());
-        return itemService.itemWithBookingsAndCommentsToDtos(itemService.getItemsByUserId(userId, page));
+
+        List<Item> items = itemService.getItemsByUserId(userId, page);
+        itemService.setBookingsAndCommentsToItems(items);
+        return itemMapper.toDtos(items);
     }
 
     @GetMapping("/{id}")
     public ItemDto getItemById(@RequestHeader(USER_ID_REQUEST_HEADER) Long userId, @PathVariable Long id) {
         Item item = itemService.getItemById(id);
+
         if (Objects.equals(userId, item.getOwner().getId())) {
-            return itemService.itemWithBookingsAndCommentsToDto(item);
+            itemService.setBookingsAndCommentsToItem(item);
+        } else {
+            itemService.setCommentsToItem(item);
         }
-        return itemService.itemWithCommentsToDto(item);
+
+        return itemMapper.toDto(item);
     }
 
     @PostMapping

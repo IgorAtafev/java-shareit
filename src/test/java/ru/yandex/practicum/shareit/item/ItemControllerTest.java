@@ -102,14 +102,15 @@ class ItemControllerTest {
         String json = objectMapper.writeValueAsString(expectedItemDto);
 
         when(itemService.getItemsByUserId(userId, page)).thenReturn(expectedItem);
-        when(itemService.itemWithBookingsAndCommentsToDtos(expectedItem)).thenReturn(expectedItemDto);
+        when(itemMapper.toDtos(expectedItem)).thenReturn(expectedItemDto);
 
         mockMvc.perform(get("/items").header("X-Sharer-User-Id", userId))
                 .andExpect(status().isOk())
                 .andExpect(content().json(json));
 
         verify(itemService, times(1)).getItemsByUserId(userId, page);
-        verify(itemService, times(1)).itemWithBookingsAndCommentsToDtos(expectedItem);
+        verify(itemService, times(1)).setBookingsAndCommentsToItems(expectedItem);
+        verify(itemMapper, times(1)).toDtos(expectedItem);
     }
 
     @Test
@@ -141,14 +142,15 @@ class ItemControllerTest {
         String json = objectMapper.writeValueAsString(itemDto);
 
         when(itemService.getItemById(itemId)).thenReturn(item);
-        when(itemService.itemWithBookingsAndCommentsToDto(item)).thenReturn(itemDto);
+        when(itemMapper.toDto(item)).thenReturn(itemDto);
 
         mockMvc.perform(get("/items/{id}", itemId).header("X-Sharer-User-Id", userId))
                 .andExpect(status().isOk())
                 .andExpect(content().json(json));
 
         verify(itemService, times(1)).getItemById(itemId);
-        verify(itemService, times(1)).itemWithBookingsAndCommentsToDto(item);
+        verify(itemService, times(1)).setBookingsAndCommentsToItem(item);
+        verify(itemMapper, times(1)).toDto(item);
     }
 
     @Test
@@ -164,14 +166,15 @@ class ItemControllerTest {
         String json = objectMapper.writeValueAsString(itemDto);
 
         when(itemService.getItemById(itemId)).thenReturn(item);
-        when(itemService.itemWithCommentsToDto(item)).thenReturn(itemDto);
+        when(itemMapper.toDto(item)).thenReturn(itemDto);
 
         mockMvc.perform(get("/items/{id}", itemId).header("X-Sharer-User-Id", userId))
                 .andExpect(status().isOk())
                 .andExpect(content().json(json));
 
         verify(itemService, times(1)).getItemById(itemId);
-        verify(itemService, times(1)).itemWithCommentsToDto(item);
+        verify(itemService, times(1)).setCommentsToItem(item);
+        verify(itemMapper, times(1)).toDto(item);
     }
 
     @Test

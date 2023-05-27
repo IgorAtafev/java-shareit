@@ -23,6 +23,10 @@ public class CommentMapper {
     }
 
     public List<CommentForResponseDto> toDtos(Collection<Comment> comments) {
+        if (comments == null) {
+            return null;
+        }
+
         return  comments.stream()
                 .map(this::toDto)
                 .collect(Collectors.toList());

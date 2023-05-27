@@ -2,7 +2,6 @@ package ru.yandex.practicum.shareit.request;
 
 import org.springframework.data.domain.Pageable;
 
-import java.util.Collection;
 import java.util.List;
 
 public interface ItemRequestService {
@@ -16,7 +15,7 @@ public interface ItemRequestService {
      * @param page
      * @return list of requests
      */
-    Collection<ItemRequest> getItemRequestsAll(Long userId, Pageable page);
+    List<ItemRequest> getItemRequestsAll(Long userId, Pageable page);
 
     /**
      * Returns a list of user requests
@@ -25,7 +24,7 @@ public interface ItemRequestService {
      * @param userId
      * @return list of requests
      */
-    Collection<ItemRequest> getItemRequestsByUserId(Long userId);
+    List<ItemRequest> getItemRequestsByUserId(Long userId);
 
     /**
      * Returns an item request by id
@@ -47,18 +46,18 @@ public interface ItemRequestService {
     ItemRequest createRequest(ItemRequest itemRequest);
 
     /**
-     * Returns an item request with items
+     * Sets the list of items to the request
      *
      * @param itemRequest
      * @return
      */
-    ItemRequestDto itemRequestWithItemsToDto(ItemRequest itemRequest);
+    void setItemsToItemRequest(ItemRequest itemRequest);
 
     /**
-     * Returns a list of requests with booking and comments
+     * Sets a list of items to the list of requests
      *
      * @param itemRequests
      * @return
      */
-    List<ItemRequestDto> itemRequestWithItemsToDtos(Collection<ItemRequest> itemRequests);
+    void setItemsToItemRequests(List<ItemRequest> itemRequests);
 }

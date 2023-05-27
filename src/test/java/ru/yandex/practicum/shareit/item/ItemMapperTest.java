@@ -1,21 +1,62 @@
 package ru.yandex.practicum.shareit.item;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import ru.yandex.practicum.shareit.booking.Booking;
+import ru.yandex.practicum.shareit.booking.BookingForItemsDto;
+import ru.yandex.practicum.shareit.booking.BookingForItemsMapper;
 import ru.yandex.practicum.shareit.request.ItemRequest;
-import ru.yandex.practicum.shareit.user.User;
 
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
 
+@ExtendWith(MockitoExtension.class)
 class ItemMapperTest {
 
-    private final ItemMapper itemMapper = new ItemMapper();
+    private final LocalDateTime currentDateTime = LocalDateTime.of(2023, 5, 8, 12, 5);
+
+    @Mock
+    private BookingForItemsMapper bookingForItemsMapper;
+
+    @Mock
+    private CommentMapper commentMapper;
+
+    @InjectMocks
+    private ItemMapper itemMapper;
 
     @Test
     void toDto_shouldReturnItemDto() {
         Item item = initItem();
+
+        Booking booking1 = initBooking();
+        Booking booking2 = initBooking();
+        BookingForItemsDto bookingDto1 = initBookingForItemsDto();
+        BookingForItemsDto bookingDto2 = initBookingForItemsDto();
+
+        item.setLastBooking(booking1);
+        item.setNextBooking(booking2);
+
+        when(bookingForItemsMapper.toDto(item.getLastBooking())).thenReturn(bookingDto1);
+        when(bookingForItemsMapper.toDto(item.getNextBooking())).thenReturn(bookingDto2);
+
+        Comment comment1 = initComment();
+        Comment comment2 = initComment();
+        CommentForResponseDto commentDto1 = initCommentForResponseDto();
+        CommentForResponseDto commentDto2 = initCommentForResponseDto();
+
+        List<Comment> comments = List.of(comment1, comment2);
+        List<CommentForResponseDto> commentDtos = List.of(commentDto1, commentDto2);
+
+        item.setComments(comments);
+
+        when(commentMapper.toDtos(comments)).thenReturn(commentDtos);
 
         ItemDto itemDto = itemMapper.toDto(item);
 
@@ -23,6 +64,9 @@ class ItemMapperTest {
         assertThat(itemDto.getName()).isEqualTo("Дрель");
         assertThat(itemDto.getDescription()).isEqualTo("Простая дрель");
         assertThat(itemDto.getAvailable()).isEqualTo(true);
+        assertThat(itemDto.getLastBooking()).isEqualTo(bookingDto1);
+        assertThat(itemDto.getNextBooking()).isEqualTo(bookingDto2);
+        assertThat(itemDto.getComments()).isEqualTo(commentDtos);
 
         item.setRequest(new ItemRequest());
         item.getRequest().setId(2L);
@@ -68,6 +112,7 @@ class ItemMapperTest {
         itemDto.setName("Дрель");
         itemDto.setDescription("Простая дрель");
         itemDto.setAvailable(true);
+        itemDto.setComments(List.of());
 
         return itemDto;
     }
@@ -79,8 +124,41 @@ class ItemMapperTest {
         item.setName("Дрель");
         item.setDescription("Простая дрель");
         item.setAvailable(true);
-        item.setOwner(new User());
+        item.setComments(List.of());
 
         return item;
+    }
+
+    private CommentForResponseDto initCommentForResponseDto() {
+        CommentForResponseDto commentDto = new CommentForResponseDto();
+
+        commentDto.setText("Комментарий пользователя");
+        commentDto.setAuthorName("Автор");
+
+        return commentDto;
+    }
+
+    private Comment initComment() {
+        Comment comment = new Comment();
+        comment.setText("Комментарий пользователя");
+        return comment;
+    }
+
+    private BookingForItemsDto initBookingForItemsDto() {
+        BookingForItemsDto bookingForItemsDto = new BookingForItemsDto();
+
+        bookingForItemsDto.setStart(currentDateTime.plusHours(1));
+        bookingForItemsDto.setEnd(currentDateTime.plusHours(2));
+
+        return bookingForItemsDto;
+    }
+
+    private Booking initBooking() {
+        Booking booking = new Booking();
+
+        booking.setStart(currentDateTime.plusHours(1));
+        booking.setEnd(currentDateTime.plusHours(2));
+
+        return booking;
     }
 }

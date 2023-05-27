@@ -97,14 +97,16 @@ class ItemRequestControllerTest {
         String json = objectMapper.writeValueAsString(expectedItemRequestDto);
 
         when(itemRequestService.getItemRequestsAll(userId, page)).thenReturn(expectedItemRequest);
-        when(itemRequestService.itemRequestWithItemsToDtos(expectedItemRequest)).thenReturn(expectedItemRequestDto);
+        when(itemRequestMapper.toDtos(expectedItemRequest)).thenReturn(expectedItemRequestDto);
 
         mockMvc.perform(get("/requests/all").header("X-Sharer-User-Id", userId))
                 .andExpect(status().isOk())
                 .andExpect(content().json(json));
 
         verify(itemRequestService, times(1)).getItemRequestsAll(userId, page);
-        verify(itemRequestService, times(1)).itemRequestWithItemsToDtos(expectedItemRequest);
+        verify(itemRequestService, times(1)).setItemsToItemRequests(expectedItemRequest);
+        verify(itemRequestMapper, times(1)).toDtos(expectedItemRequest);
+
     }
 
     @Test
@@ -154,14 +156,14 @@ class ItemRequestControllerTest {
         String json = objectMapper.writeValueAsString(expectedItemRequestDto);
 
         when(itemRequestService.getItemRequestsByUserId(userId)).thenReturn(expectedItemRequest);
-        when(itemRequestService.itemRequestWithItemsToDtos(expectedItemRequest)).thenReturn(expectedItemRequestDto);
+        when(itemRequestMapper.toDtos(expectedItemRequest)).thenReturn(expectedItemRequestDto);
 
         mockMvc.perform(get("/requests").header("X-Sharer-User-Id", userId))
                 .andExpect(status().isOk())
                 .andExpect(content().json(json));
 
         verify(itemRequestService, times(1)).getItemRequestsByUserId(userId);
-        verify(itemRequestService, times(1)).itemRequestWithItemsToDtos(expectedItemRequest);
+        verify(itemRequestService, times(1)).setItemsToItemRequests(expectedItemRequest);
     }
 
     @Test
@@ -187,14 +189,16 @@ class ItemRequestControllerTest {
         String json = objectMapper.writeValueAsString(itemRequestDto);
 
         when(itemRequestService.getItemRequestById(itemRequestId, userId)).thenReturn(itemRequest);
-        when(itemRequestService.itemRequestWithItemsToDto(itemRequest)).thenReturn(itemRequestDto);
+        when(itemRequestMapper.toDto(itemRequest)).thenReturn(itemRequestDto);
 
         mockMvc.perform(get("/requests/{id}", itemRequestId).header("X-Sharer-User-Id", userId))
                 .andExpect(status().isOk())
                 .andExpect(content().json(json));
 
         verify(itemRequestService, times(1)).getItemRequestById(itemRequestId, userId);
-        verify(itemRequestService, times(1)).itemRequestWithItemsToDto(itemRequest);
+        verify(itemRequestService, times(1)).setItemsToItemRequest(itemRequest);
+        verify(itemRequestMapper, times(1)).toDto(itemRequest);
+
     }
 
     @Test

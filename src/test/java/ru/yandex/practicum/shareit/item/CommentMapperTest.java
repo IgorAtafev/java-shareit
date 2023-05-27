@@ -1,6 +1,5 @@
 package ru.yandex.practicum.shareit.item;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import ru.yandex.practicum.shareit.user.User;
 
@@ -12,14 +11,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class CommentMapperTest {
 
+    private LocalDateTime currentDateTime = LocalDateTime.of(2023, 5, 8, 12, 5);
+
     private final CommentMapper commentMapper = new CommentMapper();
-
-    private LocalDateTime currentDateTime;
-
-    @BeforeEach
-    void setUp() {
-        currentDateTime = LocalDateTime.of(2023, 5, 8, 12, 5);
-    }
 
     @Test
     void toDto_shouldReturnCommentForResponseDto() {

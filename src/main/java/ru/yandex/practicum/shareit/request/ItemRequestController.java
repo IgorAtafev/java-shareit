@@ -44,12 +44,17 @@ public class ItemRequestController {
             @RequestParam(defaultValue = "20") @Positive Integer size
     ) {
         Pageable page = PageRequest.of(from / size, size, Sort.by("created").descending());
-        return itemRequestService.itemRequestWithItemsToDtos(itemRequestService.getItemRequestsAll(userId, page));
+
+        List<ItemRequest> itemRequests = itemRequestService.getItemRequestsAll(userId, page);
+        itemRequestService.setItemsToItemRequests(itemRequests);
+        return itemRequestMapper.toDtos(itemRequests);
     }
 
     @GetMapping
     public List<ItemRequestDto> getItemRequestsByUserId(@RequestHeader(USER_ID_REQUEST_HEADER) Long userId) {
-        return itemRequestService.itemRequestWithItemsToDtos(itemRequestService.getItemRequestsByUserId(userId));
+        List<ItemRequest> itemRequests = itemRequestService.getItemRequestsByUserId(userId);
+        itemRequestService.setItemsToItemRequests(itemRequests);
+        return itemRequestMapper.toDtos(itemRequests);
     }
 
     @GetMapping("/{id}")
@@ -57,7 +62,9 @@ public class ItemRequestController {
             @RequestHeader(USER_ID_REQUEST_HEADER) Long userId,
             @PathVariable Long id
     ) {
-        return itemRequestService.itemRequestWithItemsToDto(itemRequestService.getItemRequestById(id, userId));
+        ItemRequest itemRequest = itemRequestService.getItemRequestById(id, userId);
+        itemRequestService.setItemsToItemRequest(itemRequest);
+        return itemRequestMapper.toDto(itemRequest);
     }
 
     @PostMapping
@@ -73,11 +80,7 @@ public class ItemRequestController {
 
     private ItemRequest toItemRequest(ItemRequestDto itemRequestDto, Long authorId) {
         ItemRequest itemRequest = itemRequestMapper.toItemRequest(itemRequestDto);
-
-        itemRequest.setId(itemRequestDto.getId());
-        itemRequest.setDescription(itemRequestDto.getDescription());
         itemRequest.setRequestor(userService.getUserById(authorId));
-
         return itemRequest;
     }
 }
