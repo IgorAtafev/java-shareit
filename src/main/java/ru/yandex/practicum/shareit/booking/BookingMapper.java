@@ -5,8 +5,8 @@ import org.springframework.stereotype.Component;
 import ru.yandex.practicum.shareit.item.ItemMapper;
 import ru.yandex.practicum.shareit.user.UserMapper;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
@@ -28,14 +28,10 @@ public class BookingMapper {
         return bookingDto;
     }
 
-    public List<BookingForResponseDto> toDtos(Iterable<Booking> bookings) {
-        List<BookingForResponseDto> bookingDtos = new ArrayList<>();
-
-        for (Booking booking : bookings) {
-            bookingDtos.add(toDto(booking));
-        }
-
-        return bookingDtos;
+    public List<BookingForResponseDto> toDtos(List<Booking> bookings) {
+        return bookings.stream()
+                .map(this::toDto)
+                .collect(Collectors.toList());
     }
 
     public Booking toBooking(BookingForCreateDto bookingDto) {

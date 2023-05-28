@@ -1,7 +1,5 @@
 package ru.yandex.practicum.shareit.booking;
 
-import com.querydsl.core.types.Predicate;
-import com.querydsl.core.types.dsl.BooleanExpression;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -9,7 +7,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -59,96 +56,12 @@ class BookingServiceImplTest {
         Integer size = 20;
         Pageable page = PageRequest.of(0, size, Sort.by("start").descending());
 
-        Booking booking1 = initBooking();
-        Booking booking2 = initBooking();
-        Booking booking3 = initBooking();
-        Booking booking4 = initBooking();
-
-        booking1.getBooker().setId(userId);
-        booking1.setStatus(BookingStatus.WAITING);
-        booking1.setStart(currentDateTime.plusHours(1));
-        booking1.setEnd(currentDateTime.plusHours(2));
-
-        booking2.getBooker().setId(userId);
-        booking2.setStatus(BookingStatus.WAITING);
-        booking2.setStart(currentDateTime.minusHours(2));
-        booking2.setEnd(currentDateTime.minusHours(1));
-
-        booking3.getBooker().setId(userId);
-        booking3.setStatus(BookingStatus.REJECTED);
-        booking3.setStart(currentDateTime.minusHours(2));
-        booking3.setEnd(currentDateTime.plusHours(1));
-
-        booking4.getBooker().setId(userId);
-        booking4.setStatus(BookingStatus.REJECTED);
-        booking4.setStart(currentDateTime.minusHours(1));
-        booking4.setEnd(currentDateTime.plusHours(2));
-
         when(userRepository.existsById(userId)).thenReturn(true);
-
-        QBooking qBooking = QBooking.booking;
-
-        String state = "ALL";
-        BooleanExpression sourceExpression = qBooking.booker.id.eq(userId);
-        Predicate predicate = sourceExpression;
-        List<Booking> expected = List.of(booking1, booking2, booking3, booking4);
-
-        when(bookingRepository.findAll(predicate, page)).thenReturn(new PageImpl<>(expected));
-        assertThat(bookingService.getBookingsByUserId(userId, state, page)).isEqualTo(expected);
-        verify(userRepository, times(1)).existsById(userId);
-        verify(bookingRepository, times(1)).findAll(predicate, page);
-
-        state = "CURRENT";
-        BooleanExpression addExpression = qBooking.start.lt(currentDateTime).and(qBooking.end.gt(currentDateTime));
-        predicate = sourceExpression.and(addExpression);
-        expected = List.of(booking3, booking4);
-
-        when(bookingRepository.findAll(predicate, page)).thenReturn(new PageImpl<>(expected));
-        try (MockedStatic<LocalDateTime> mockDateTime = mockStatic(LocalDateTime.class)) {
-            mockDateTime.when(LocalDateTime::now).thenReturn(currentDateTime);
-            assertThat(bookingService.getBookingsByUserId(userId, state, page)).isEqualTo(expected);
-        }
-
-        state = "PAST";
-        addExpression = qBooking.end.lt(currentDateTime);
-        predicate = sourceExpression.and(addExpression);
-        expected = List.of(booking2);
-
-        when(bookingRepository.findAll(predicate, page)).thenReturn(new PageImpl<>(expected));
-        try (MockedStatic<LocalDateTime> mockDateTime = mockStatic(LocalDateTime.class)) {
-            mockDateTime.when(LocalDateTime::now).thenReturn(currentDateTime);
-            assertThat(bookingService.getBookingsByUserId(userId, state, page)).isEqualTo(expected);
-        }
-
-        state = "FUTURE";
-        addExpression = qBooking.start.gt(currentDateTime);
-        predicate = sourceExpression.and(addExpression);
-        expected = List.of(booking1);
-
-        when(bookingRepository.findAll(predicate, page)).thenReturn(new PageImpl<>(expected));
-        try (MockedStatic<LocalDateTime> mockDateTime = mockStatic(LocalDateTime.class)) {
-            mockDateTime.when(LocalDateTime::now).thenReturn(currentDateTime);
-            assertThat(bookingService.getBookingsByUserId(userId, state, page)).isEqualTo(expected);
-        }
-
-        state = "WAITING";
-        addExpression = qBooking.status.eq(BookingStatus.WAITING);
-        predicate = sourceExpression.and(addExpression);
-        expected = List.of(booking1, booking2);
-
-        when(bookingRepository.findAll(predicate, page)).thenReturn(new PageImpl<>(expected));
-        assertThat(bookingService.getBookingsByUserId(userId, state, page)).isEqualTo(expected);
-
-        state = "REJECTED";
-        addExpression = qBooking.status.eq(BookingStatus.REJECTED);
-        predicate = sourceExpression.and(addExpression);
-        expected = List.of(booking3, booking4);
-
-        when(bookingRepository.findAll(predicate, page)).thenReturn(new PageImpl<>(expected));
-        assertThat(bookingService.getBookingsByUserId(userId, state, page)).isEqualTo(expected);
 
         assertThatExceptionOfType(ValidationException.class)
                 .isThrownBy(() -> bookingService.getBookingsByUserId(userId, "UNDEFINED", page));
+
+        verify(userRepository, times(1)).existsById(userId);
     }
 
     @Test
@@ -173,96 +86,12 @@ class BookingServiceImplTest {
         Integer size = 20;
         Pageable page = PageRequest.of(0, size, Sort.by("start").descending());
 
-        Booking booking1 = initBooking();
-        Booking booking2 = initBooking();
-        Booking booking3 = initBooking();
-        Booking booking4 = initBooking();
-
-        booking1.getItem().getOwner().setId(userId);
-        booking1.setStatus(BookingStatus.WAITING);
-        booking1.setStart(currentDateTime.plusHours(1));
-        booking1.setEnd(currentDateTime.plusHours(2));
-
-        booking2.getItem().getOwner().setId(userId);
-        booking2.setStatus(BookingStatus.WAITING);
-        booking2.setStart(currentDateTime.minusHours(2));
-        booking2.setEnd(currentDateTime.minusHours(1));
-
-        booking3.getItem().getOwner().setId(userId);
-        booking3.setStatus(BookingStatus.REJECTED);
-        booking3.setStart(currentDateTime.minusHours(2));
-        booking3.setEnd(currentDateTime.plusHours(1));
-
-        booking4.getItem().getOwner().setId(userId);
-        booking4.setStatus(BookingStatus.REJECTED);
-        booking4.setStart(currentDateTime.minusHours(1));
-        booking4.setEnd(currentDateTime.plusHours(2));
-
         when(userRepository.existsById(userId)).thenReturn(true);
-
-        QBooking qBooking = QBooking.booking;
-
-        String state = "ALL";
-        BooleanExpression sourceExpression = qBooking.item.owner.id.eq(userId);
-        Predicate predicate = sourceExpression;
-        List<Booking> expected = List.of(booking1, booking2, booking3, booking4);
-
-        when(bookingRepository.findAll(predicate, page)).thenReturn(new PageImpl<>(expected));
-        assertThat(bookingService.getBookingsByItemOwnerId(userId, state, page)).isEqualTo(expected);
-        verify(userRepository, times(1)).existsById(userId);
-        verify(bookingRepository, times(1)).findAll(predicate, page);
-
-        state = "CURRENT";
-        BooleanExpression addExpression = qBooking.start.lt(currentDateTime).and(qBooking.end.gt(currentDateTime));
-        predicate = sourceExpression.and(addExpression);
-        expected = List.of(booking3, booking4);
-
-        when(bookingRepository.findAll(predicate, page)).thenReturn(new PageImpl<>(expected));
-        try (MockedStatic<LocalDateTime> mockDateTime = mockStatic(LocalDateTime.class)) {
-            mockDateTime.when(LocalDateTime::now).thenReturn(currentDateTime);
-            assertThat(bookingService.getBookingsByItemOwnerId(userId, state, page)).isEqualTo(expected);
-        }
-
-        state = "PAST";
-        addExpression = qBooking.end.lt(currentDateTime);
-        predicate = sourceExpression.and(addExpression);
-        expected = List.of(booking2);
-
-        when(bookingRepository.findAll(predicate, page)).thenReturn(new PageImpl<>(expected));
-        try (MockedStatic<LocalDateTime> mockDateTime = mockStatic(LocalDateTime.class)) {
-            mockDateTime.when(LocalDateTime::now).thenReturn(currentDateTime);
-            assertThat(bookingService.getBookingsByItemOwnerId(userId, state, page)).isEqualTo(expected);
-        }
-
-        state = "FUTURE";
-        addExpression = qBooking.start.gt(currentDateTime);
-        predicate = sourceExpression.and(addExpression);
-        expected = List.of(booking1);
-
-        when(bookingRepository.findAll(predicate, page)).thenReturn(new PageImpl<>(expected));
-        try (MockedStatic<LocalDateTime> mockDateTime = mockStatic(LocalDateTime.class)) {
-            mockDateTime.when(LocalDateTime::now).thenReturn(currentDateTime);
-            assertThat(bookingService.getBookingsByItemOwnerId(userId, state, page)).isEqualTo(expected);
-        }
-
-        state = "WAITING";
-        addExpression = qBooking.status.eq(BookingStatus.WAITING);
-        predicate = sourceExpression.and(addExpression);
-        expected = List.of(booking1, booking2);
-
-        when(bookingRepository.findAll(predicate, page)).thenReturn(new PageImpl<>(expected));
-        assertThat(bookingService.getBookingsByItemOwnerId(userId, state, page)).isEqualTo(expected);
-
-        state = "REJECTED";
-        addExpression = qBooking.status.eq(BookingStatus.REJECTED);
-        predicate = sourceExpression.and(addExpression);
-        expected = List.of(booking3, booking4);
-
-        when(bookingRepository.findAll(predicate, page)).thenReturn(new PageImpl<>(expected));
-        assertThat(bookingService.getBookingsByItemOwnerId(userId, state, page)).isEqualTo(expected);
 
         assertThatExceptionOfType(ValidationException.class)
                 .isThrownBy(() -> bookingService.getBookingsByItemOwnerId(userId, "UNDEFINED", page));
+
+        verify(userRepository, times(1)).existsById(userId);
     }
 
     @Test

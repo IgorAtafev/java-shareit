@@ -29,6 +29,7 @@ class CommentMapperTest {
 
     @Test
     void toDtos_shouldReturnEmptyListOfCommentForResponseDtos() {
+        assertThat(commentMapper.toDtos(null)).isNull();
         assertThat(commentMapper.toDtos(Collections.emptyList())).isEmpty();
     }
 

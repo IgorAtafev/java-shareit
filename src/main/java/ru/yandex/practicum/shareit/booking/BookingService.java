@@ -17,7 +17,7 @@ public interface BookingService {
      * @param page
      * @return list of bookings
      */
-    Iterable<Booking> getBookingsByUserId(Long userId, String state, Pageable page);
+    List<Booking> getBookingsByUserId(Long userId, String state, Pageable page);
 
     /**
      * Returns a list of bookings for all the user's items
@@ -29,7 +29,7 @@ public interface BookingService {
      * @param page
      * @return list of bookings
      */
-    Iterable<Booking> getBookingsByItemOwnerId(Long userId, String state, Pageable page);
+    List<Booking> getBookingsByItemOwnerId(Long userId, String state, Pageable page);
 
     /**
      * Returns booking by id

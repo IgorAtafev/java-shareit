@@ -15,6 +15,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import ru.yandex.practicum.shareit.request.ItemRequest;
+import ru.yandex.practicum.shareit.request.ItemRequestService;
 import ru.yandex.practicum.shareit.user.User;
 import ru.yandex.practicum.shareit.user.UserService;
 import ru.yandex.practicum.shareit.validator.ErrorHandler;
@@ -48,6 +50,9 @@ class ItemControllerTest {
 
     @Mock
     private UserService userService;
+
+    @Mock
+    private ItemRequestService itemRequestService;
 
     @Mock
     private ItemMapper itemMapper;
@@ -298,15 +303,26 @@ class ItemControllerTest {
     void updateItemById_shouldResponseWithNotFound_ifItemDoesNotExist() throws Exception {
         Long itemId = 1L;
         Long userId = 1L;
+        Long requestId = 2L;
 
         ItemDto itemDto = initItemDto();
         Item item = initItem();
+        Item oldItem = initItem();
+        ItemRequest itemRequest = initItemRequest();
         itemDto.setId(itemId);
         item.setId(itemId);
+        oldItem.setId(itemId);
+
+        itemDto.setName(null);
+        itemDto.setDescription(null);
+        itemDto.setAvailable(null);
+        itemDto.setRequestId(requestId);
 
         String json = objectMapper.writeValueAsString(itemDto);
 
         when(itemMapper.toItem(itemDto)).thenReturn(item);
+        when(itemService.getItemById(itemId)).thenReturn(oldItem);
+        when(itemRequestService.getItemRequestById(requestId, userId)).thenReturn(itemRequest);
         when(itemService.updateItem(item)).thenThrow(NotFoundException.class);
 
         mockMvc.perform(patch("/items/{id}", itemId).header("X-Sharer-User-Id", userId)
@@ -314,7 +330,9 @@ class ItemControllerTest {
                 .andExpect(status().isNotFound());
 
         verify(itemMapper, times(1)).toItem(itemDto);
+        verify(itemService, times(1)).getItemById(itemId);
         verify(itemService, times(1)).updateItem(item);
+        verify(itemRequestService, times(1)).getItemRequestById(requestId, userId);
         verify(itemMapper, never()).toDto(item);
     }
 
@@ -563,5 +581,14 @@ class ItemControllerTest {
         Comment comment = new Comment();
         comment.setText("Комментарий пользователя");
         return comment;
+    }
+
+    private ItemRequest initItemRequest() {
+        ItemRequest itemRequest = new ItemRequest();
+
+        itemRequest.setDescription("Хотел бы воспользоваться щеткой для обуви");
+        itemRequest.setRequestor(new User());
+
+        return itemRequest;
     }
 }

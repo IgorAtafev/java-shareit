@@ -26,7 +26,7 @@ public class ItemRequestMapper {
     }
 
     public List<ItemRequestDto> toDtos(Collection<ItemRequest> itemRequests) {
-        return  itemRequests.stream()
+        return itemRequests.stream()
                 .map(this::toDto)
                 .collect(Collectors.toList());
     }

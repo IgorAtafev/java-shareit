@@ -27,7 +27,7 @@ public class CommentMapper {
             return null;
         }
 
-        return  comments.stream()
+        return comments.stream()
                 .map(this::toDto)
                 .collect(Collectors.toList());
     }

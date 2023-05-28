@@ -34,7 +34,7 @@ public class ItemMapper {
     }
 
     public List<ItemDto> toDtos(Collection<Item> items) {
-        return  items.stream()
+        return items.stream()
                 .map(this::toDto)
                 .collect(Collectors.toList());
     }

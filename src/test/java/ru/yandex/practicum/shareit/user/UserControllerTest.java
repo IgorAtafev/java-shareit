@@ -159,12 +159,18 @@ class UserControllerTest {
 
         UserDto userDto = initUserDto();
         User user = initUser();
+        User oldUser = initUser();
         userDto.setId(userId);
         user.setId(userId);
+        oldUser.setId(userId);
+
+        userDto.setEmail(null);
+        userDto.setName(null);
 
         String json = objectMapper.writeValueAsString(userDto);
 
         when(userMapper.toUser(userDto)).thenReturn(user);
+        when(userService.getUserById(userId)).thenReturn(oldUser);
         when(userService.updateUser(user)).thenReturn(user);
         when(userMapper.toDto(user)).thenReturn(userDto);
 
