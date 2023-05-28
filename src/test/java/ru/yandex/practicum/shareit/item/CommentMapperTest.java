@@ -11,7 +11,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class CommentMapperTest {
 
-    private LocalDateTime currentDateTime = LocalDateTime.of(2023, 5, 8, 12, 5);
+    private final LocalDateTime currentDateTime = LocalDateTime.of(2023, 5, 8, 12, 5);
 
     private final CommentMapper commentMapper = new CommentMapper();
 
