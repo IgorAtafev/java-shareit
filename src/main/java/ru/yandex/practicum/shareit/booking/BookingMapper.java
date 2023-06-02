@@ -3,12 +3,10 @@ package ru.yandex.practicum.shareit.booking;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.shareit.item.ItemMapper;
-import ru.yandex.practicum.shareit.item.ItemService;
 import ru.yandex.practicum.shareit.user.UserMapper;
-import ru.yandex.practicum.shareit.user.UserService;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
@@ -16,8 +14,6 @@ public class BookingMapper {
 
     private final ItemMapper itemMapper;
     private final UserMapper userMapper;
-    private final ItemService itemService;
-    private final UserService userService;
 
     public BookingForResponseDto toDto(Booking booking) {
         BookingForResponseDto bookingDto = new BookingForResponseDto();
@@ -32,23 +28,17 @@ public class BookingMapper {
         return bookingDto;
     }
 
-    public List<BookingForResponseDto> toDtos(Iterable<Booking> bookings) {
-        List<BookingForResponseDto> bookingsDto = new ArrayList<>();
-
-        for (Booking booking : bookings) {
-            bookingsDto.add(toDto(booking));
-        }
-
-        return bookingsDto;
+    public List<BookingForResponseDto> toDtos(List<Booking> bookings) {
+        return bookings.stream()
+                .map(this::toDto)
+                .collect(Collectors.toList());
     }
 
-    public Booking toBooking(BookingForCreateDto bookingDto, Long ownerId) {
+    public Booking toBooking(BookingForCreateDto bookingDto) {
         Booking booking = new Booking();
 
         booking.setStart(bookingDto.getStart());
         booking.setEnd(bookingDto.getEnd());
-        booking.setItem(itemService.getItemById(bookingDto.getItemId()));
-        booking.setBooker(userService.getUserById(ownerId));
 
         return booking;
     }

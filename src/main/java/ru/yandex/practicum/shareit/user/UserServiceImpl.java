@@ -8,7 +8,7 @@ import ru.yandex.practicum.shareit.item.CommentRepository;
 import ru.yandex.practicum.shareit.item.ItemRepository;
 import ru.yandex.practicum.shareit.validator.NotFoundException;
 
-import java.util.Collection;
+import java.util.List;
 
 @Service
 @Transactional(readOnly = true)
@@ -21,7 +21,7 @@ public class UserServiceImpl implements UserService {
     private final CommentRepository commentRepository;
 
     @Override
-    public Collection<User> getUsers() {
+    public List<User> getUsers() {
         return userRepository.findAll();
     }
 

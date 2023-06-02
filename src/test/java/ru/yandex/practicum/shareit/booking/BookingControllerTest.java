@@ -11,10 +11,15 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import ru.yandex.practicum.shareit.item.Item;
+import ru.yandex.practicum.shareit.item.ItemService;
 import ru.yandex.practicum.shareit.user.User;
+import ru.yandex.practicum.shareit.user.UserService;
 import ru.yandex.practicum.shareit.validator.ErrorHandler;
 import ru.yandex.practicum.shareit.validator.NotFoundException;
 
@@ -45,6 +50,12 @@ class BookingControllerTest {
     private BookingService bookingService;
 
     @Mock
+    private ItemService itemService;
+
+    @Mock
+    private UserService userService;
+
+    @Mock
     private BookingMapper bookingMapper;
 
     @InjectMocks
@@ -61,12 +72,14 @@ class BookingControllerTest {
     void getBookingsByUserId_shouldReturnEmptyListOfBookings() throws Exception {
         Long userId = 1L;
         String state = "ALL";
+        Integer size = 20;
+        Pageable page = PageRequest.of(0, size, Sort.by("start").descending());
 
         mockMvc.perform(get("/bookings?state={state}", state).header("X-Sharer-User-Id", userId))
                 .andExpect(status().isOk())
                 .andExpect(content().json("[]"));
 
-        verify(bookingService, times(1)).getBookingsByUserId(userId, state);
+        verify(bookingService, times(1)).getBookingsByUserId(userId, state, page);
     }
 
     @Test
@@ -75,6 +88,8 @@ class BookingControllerTest {
         Long bookingId1 = 1L;
         Long bookingId2 = 2L;
         String state = "ALL";
+        Integer size = 20;
+        Pageable page = PageRequest.of(0, size, Sort.by("start").descending());
 
         BookingForResponseDto bookingDto1 = initBookingForResponseDto();
         BookingForResponseDto bookingDto2 = initBookingForResponseDto();
@@ -91,14 +106,14 @@ class BookingControllerTest {
 
         String json = objectMapper.writeValueAsString(expectedBookingDto);
 
-        when(bookingService.getBookingsByUserId(userId, state)).thenReturn(expectedBooking);
+        when(bookingService.getBookingsByUserId(userId, state, page)).thenReturn(expectedBooking);
         when(bookingMapper.toDtos(expectedBooking)).thenReturn(expectedBookingDto);
 
         mockMvc.perform(get("/bookings?state={state}", state).header("X-Sharer-User-Id", userId))
                 .andExpect(status().isOk())
                 .andExpect(content().json(json));
 
-        verify(bookingService, times(1)).getBookingsByUserId(userId, state);
+        verify(bookingService, times(1)).getBookingsByUserId(userId, state, page);
         verify(bookingMapper, times(1)).toDtos(expectedBooking);
     }
 
@@ -106,25 +121,29 @@ class BookingControllerTest {
     void getBookingsByUserId_shouldResponseWithNotFound_ifUserDoesNotExist() throws Exception {
         Long userId = 1L;
         String state = "ALL";
+        Integer size = 20;
+        Pageable page = PageRequest.of(0, size, Sort.by("start").descending());
 
-        when(bookingService.getBookingsByUserId(userId, state)).thenThrow(NotFoundException.class);
+        when(bookingService.getBookingsByUserId(userId, state, page)).thenThrow(NotFoundException.class);
 
         mockMvc.perform(get("/bookings?state={state}", state).header("X-Sharer-User-Id", userId))
                 .andExpect(status().isNotFound());
 
-        verify(bookingService, times(1)).getBookingsByUserId(userId, state);
+        verify(bookingService, times(1)).getBookingsByUserId(userId, state, page);
     }
 
     @Test
     void getBookingsByItemOwnerId_shouldReturnEmptyListOfBookings() throws Exception {
         Long userId = 1L;
         String state = "ALL";
+        Integer size = 20;
+        Pageable page = PageRequest.of(0, size, Sort.by("start").descending());
 
         mockMvc.perform(get("/bookings/owner?state={state}", state).header("X-Sharer-User-Id", userId))
                 .andExpect(status().isOk())
                 .andExpect(content().json("[]"));
 
-        verify(bookingService, times(1)).getBookingsByItemOwnerId(userId, state);
+        verify(bookingService, times(1)).getBookingsByItemOwnerId(userId, state, page);
     }
 
     @Test
@@ -133,6 +152,8 @@ class BookingControllerTest {
         Long bookingId1 = 1L;
         Long bookingId2 = 2L;
         String state = "ALL";
+        Integer size = 20;
+        Pageable page = PageRequest.of(0, size, Sort.by("start").descending());
 
         BookingForResponseDto bookingDto1 = initBookingForResponseDto();
         BookingForResponseDto bookingDto2 = initBookingForResponseDto();
@@ -149,14 +170,14 @@ class BookingControllerTest {
 
         String json = objectMapper.writeValueAsString(expectedBookingDto);
 
-        when(bookingService.getBookingsByItemOwnerId(userId, state)).thenReturn(expectedBooking);
+        when(bookingService.getBookingsByItemOwnerId(userId, state, page)).thenReturn(expectedBooking);
         when(bookingMapper.toDtos(expectedBooking)).thenReturn(expectedBookingDto);
 
         mockMvc.perform(get("/bookings/owner?state={state}", state).header("X-Sharer-User-Id", userId))
                 .andExpect(status().isOk())
                 .andExpect(content().json(json));
 
-        verify(bookingService, times(1)).getBookingsByItemOwnerId(userId, state);
+        verify(bookingService, times(1)).getBookingsByItemOwnerId(userId, state, page);
         verify(bookingMapper, times(1)).toDtos(expectedBooking);
     }
 
@@ -164,13 +185,15 @@ class BookingControllerTest {
     void getBookingsByItemOwnerId_shouldResponseWithNotFound_ifUserDoesNotExist() throws Exception {
         Long userId = 1L;
         String state = "ALL";
+        Integer size = 20;
+        Pageable page = PageRequest.of(0, size, Sort.by("start").descending());
 
-        when(bookingService.getBookingsByItemOwnerId(userId, state)).thenThrow(NotFoundException.class);
+        when(bookingService.getBookingsByItemOwnerId(userId, state, page)).thenThrow(NotFoundException.class);
 
         mockMvc.perform(get("/bookings/owner?state={state}", state).header("X-Sharer-User-Id", userId))
                 .andExpect(status().isNotFound());
 
-        verify(bookingService, times(1)).getBookingsByItemOwnerId(userId, state);
+        verify(bookingService, times(1)).getBookingsByItemOwnerId(userId, state, page);
     }
 
     @Test
@@ -247,7 +270,7 @@ class BookingControllerTest {
 
         String json = objectMapper.writeValueAsString(bookingForCreateDto);
 
-        when(bookingMapper.toBooking(bookingForCreateDto, userId)).thenReturn(booking);
+        when(bookingMapper.toBooking(bookingForCreateDto)).thenReturn(booking);
         when(bookingService.createBooking(booking)).thenReturn(booking);
         when(bookingMapper.toDto(booking)).thenReturn(bookingForResponseDto);
 
@@ -255,7 +278,7 @@ class BookingControllerTest {
                         .contentType("application/json").content(json))
                 .andExpect(status().isCreated());
 
-        verify(bookingMapper, times(1)).toBooking(bookingForCreateDto, userId);
+        verify(bookingMapper, times(1)).toBooking(bookingForCreateDto);
         verify(bookingService, times(1)).createBooking(booking);
         verify(bookingMapper, times(1)).toDto(booking);
     }
@@ -272,14 +295,14 @@ class BookingControllerTest {
 
         String json = objectMapper.writeValueAsString(bookingDto);
 
-        when(bookingMapper.toBooking(bookingDto, userId)).thenReturn(booking);
+        when(bookingMapper.toBooking(bookingDto)).thenReturn(booking);
         when(bookingService.createBooking(booking)).thenThrow(NotFoundException.class);
 
         mockMvc.perform(post("/bookings").header("X-Sharer-User-Id", userId)
                         .contentType("application/json").content(json))
                 .andExpect(status().isNotFound());
 
-        verify(bookingMapper, times(1)).toBooking(bookingDto, userId);
+        verify(bookingMapper, times(1)).toBooking(bookingDto);
         verify(bookingService, times(1)).createBooking(booking);
         verify(bookingMapper, never()).toDto(booking);
     }
@@ -341,11 +364,11 @@ class BookingControllerTest {
         LocalDateTime pastDateTime = LocalDateTime.now().minusHours(1);
 
         return Stream.of(
-                Arguments.of(initBookingForCreateDto(bookingDto -> bookingDto.setStart(null))),
-                Arguments.of(initBookingForCreateDto(bookingDto -> bookingDto.setStart(pastDateTime))),
-                Arguments.of(initBookingForCreateDto(bookingDto -> bookingDto.setEnd(null))),
-                Arguments.of(initBookingForCreateDto(bookingDto -> bookingDto.setEnd(pastDateTime))),
-                Arguments.of(initBookingForCreateDto(bookingDto -> bookingDto.setItemId(null)))
+                Arguments.of(initBookingForCreateDto(dto -> dto.setStart(null))),
+                Arguments.of(initBookingForCreateDto(dto -> dto.setStart(pastDateTime))),
+                Arguments.of(initBookingForCreateDto(dto -> dto.setEnd(null))),
+                Arguments.of(initBookingForCreateDto(dto -> dto.setEnd(pastDateTime))),
+                Arguments.of(initBookingForCreateDto(dto -> dto.setItemId(null)))
         );
     }
 

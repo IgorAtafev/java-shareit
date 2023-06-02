@@ -2,13 +2,12 @@ package ru.yandex.practicum.shareit.booking;
 
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.querydsl.QuerydslPredicateExecutor;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
 import java.time.LocalDateTime;
-import java.util.Collection;
 import java.util.List;
 
-public interface BookingRepository extends JpaRepository<Booking, Long>, QuerydslPredicateExecutor<Booking> {
+public interface BookingRepository extends JpaRepository<Booking, Long>, JpaSpecificationExecutor<Booking> {
 
     /**
      * Returns a list of bookings for item IDs and status
@@ -18,7 +17,7 @@ public interface BookingRepository extends JpaRepository<Booking, Long>, Queryds
      * @param sort
      * @return list of bookings
      */
-    Collection<Booking> findByItemIdInAndStatus(List<Long> itemIds, BookingStatus status, Sort sort);
+    List<Booking> findByItemIdInAndStatus(List<Long> itemIds, BookingStatus status, Sort sort);
 
     /**
      * Returns a list of bookings for item ID and status
@@ -28,7 +27,7 @@ public interface BookingRepository extends JpaRepository<Booking, Long>, Queryds
      * @param sort
      * @return list of bookings
      */
-    Collection<Booking> findByItemIdAndStatus(Long itemId, BookingStatus status, Sort sort);
+    List<Booking> findByItemIdAndStatus(Long itemId, BookingStatus status, Sort sort);
 
     /**
      * Checks for a booking by item id, user id, status, and rental expiration date

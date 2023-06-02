@@ -159,12 +159,18 @@ class UserControllerTest {
 
         UserDto userDto = initUserDto();
         User user = initUser();
+        User oldUser = initUser();
         userDto.setId(userId);
         user.setId(userId);
+        oldUser.setId(userId);
+
+        userDto.setEmail(null);
+        userDto.setName(null);
 
         String json = objectMapper.writeValueAsString(userDto);
 
         when(userMapper.toUser(userDto)).thenReturn(user);
+        when(userService.getUserById(userId)).thenReturn(oldUser);
         when(userService.updateUser(user)).thenReturn(user);
         when(userMapper.toDto(user)).thenReturn(userDto);
 
@@ -235,19 +241,13 @@ class UserControllerTest {
 
     private static Stream<Arguments> provideInvalidUsers() {
         return Stream.of(
-                Arguments.of(initUserDto(userDto -> userDto.setEmail("mail.ru"))),
-                Arguments.of(initUserDto(userDto -> userDto.setName(""))),
-                Arguments.of(initUserDto(userDto -> userDto.setName("  "))),
-                Arguments.of(initUserDto(userDto -> userDto.setName("us er"))),
-                Arguments.of(initUserDto(userDto -> userDto.setName("u"))),
-                Arguments.of(initUserDto(userDto -> userDto.setName("userr".repeat(10) + "r")))
+                Arguments.of(initUserDto(dto -> dto.setEmail("mail.ru"))),
+                Arguments.of(initUserDto(dto -> dto.setName(""))),
+                Arguments.of(initUserDto(dto -> dto.setName("  "))),
+                Arguments.of(initUserDto(dto -> dto.setName("us er"))),
+                Arguments.of(initUserDto(dto -> dto.setName("u"))),
+                Arguments.of(initUserDto(dto -> dto.setName("userr".repeat(10) + "r")))
         );
-    }
-
-    private static UserDto initUserDto(Consumer<UserDto> consumer) {
-        UserDto userDto = initUserDto();
-        consumer.accept(userDto);
-        return userDto;
     }
 
     private static UserDto initUserDto() {
@@ -259,7 +259,13 @@ class UserControllerTest {
         return userDto;
     }
 
-    private static User initUser() {
+    private static UserDto initUserDto(Consumer<UserDto> consumer) {
+        UserDto userDto = initUserDto();
+        consumer.accept(userDto);
+        return userDto;
+    }
+
+    private User initUser() {
         User user = new User();
 
         user.setEmail("user@user.com");

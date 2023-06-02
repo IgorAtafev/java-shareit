@@ -2,7 +2,6 @@ package ru.yandex.practicum.shareit.item;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-import ru.yandex.practicum.shareit.user.UserService;
 
 import java.util.Collection;
 import java.util.List;
@@ -11,9 +10,6 @@ import java.util.stream.Collectors;
 @Component
 @RequiredArgsConstructor
 public class CommentMapper {
-
-    private final ItemService itemService;
-    private final UserService userService;
 
     public CommentForResponseDto toDto(Comment comment) {
         CommentForResponseDto commentDto = new CommentForResponseDto();
@@ -27,18 +23,18 @@ public class CommentMapper {
     }
 
     public List<CommentForResponseDto> toDtos(Collection<Comment> comments) {
-        return  comments.stream()
+        if (comments == null) {
+            return null;
+        }
+
+        return comments.stream()
                 .map(this::toDto)
                 .collect(Collectors.toList());
     }
 
-    public Comment toComment(CommentForCreateDto commentDto, Long itemId, Long authorId) {
+    public Comment toComment(CommentForCreateDto commentDto) {
         Comment comment = new Comment();
-
         comment.setText(commentDto.getText());
-        comment.setItem(itemService.getItemById(itemId));
-        comment.setAuthor(userService.getUserById(authorId));
-
         return comment;
     }
 }

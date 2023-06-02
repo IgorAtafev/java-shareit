@@ -1,9 +1,9 @@
 package ru.yandex.practicum.shareit.booking;
 
-import com.querydsl.core.types.Predicate;
-import com.querydsl.core.types.dsl.BooleanExpression;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.yandex.practicum.shareit.user.UserRepository;
@@ -26,30 +26,34 @@ public class BookingServiceImpl implements BookingService {
 
     @Transactional(readOnly = true)
     @Override
-    public Iterable<Booking> getBookingsByUserId(Long userId, String state) {
+    public List<Booking> getBookingsByUserId(Long userId, String state, Pageable page) {
         if (!userRepository.existsById(userId)) {
             throw new NotFoundException(String.format("User with id %d does not exist", userId));
         }
 
         BookingListState bookingListState = getBookingListState(state);
-        BooleanExpression expression = QBooking.booking.booker.id.eq(userId);
-        Predicate predicate = getPredicateByUserIdAndState(bookingListState, expression);
+        Specification<Booking> specification = BookingSpecification.byBookerId(userId);
+        if (bookingListState.getSpecification() != null) {
+            specification = Specification.where(specification).and(bookingListState.getSpecification());
+        }
 
-        return bookingRepository.findAll(predicate, Sort.by("start").descending());
+        return bookingRepository.findAll(specification, page).toList();
     }
 
     @Transactional(readOnly = true)
     @Override
-    public Iterable<Booking> getBookingsByItemOwnerId(Long userId, String state) {
+    public List<Booking> getBookingsByItemOwnerId(Long userId, String state, Pageable page) {
         if (!userRepository.existsById(userId)) {
             throw new NotFoundException(String.format("User with id %d does not exist", userId));
         }
 
         BookingListState bookingListState = getBookingListState(state);
-        BooleanExpression expression = QBooking.booking.item.owner.id.eq(userId);
-        Predicate predicate = getPredicateByUserIdAndState(bookingListState, expression);
+        Specification<Booking> specification = BookingSpecification.byItemOwnerId(userId);
+        if (bookingListState.getSpecification() != null) {
+            specification = Specification.where(specification).and(bookingListState.getSpecification());
+        }
 
-        return bookingRepository.findAll(predicate, Sort.by("start").descending());
+        return bookingRepository.findAll(specification, page).toList();
     }
 
     @Transactional(readOnly = true)
@@ -158,35 +162,5 @@ public class BookingServiceImpl implements BookingService {
         } catch (IllegalArgumentException e) {
             throw new ValidationException("Unknown state: UNSUPPORTED_STATUS");
         }
-    }
-
-    private Predicate getPredicateByUserIdAndState(
-            BookingListState bookingListState, BooleanExpression sourceExpression
-    ) {
-        LocalDateTime now = LocalDateTime.now();
-        BooleanExpression addExpression = null;
-        QBooking booking = QBooking.booking;
-
-        switch (bookingListState) {
-            case CURRENT:
-                addExpression = booking.start.lt(now).and(booking.end.gt(now));
-                break;
-            case PAST:
-                addExpression = booking.end.lt(now);
-                break;
-            case FUTURE:
-                addExpression = booking.start.gt(now);
-                break;
-            case WAITING:
-                addExpression = booking.status.eq(BookingStatus.WAITING);
-                break;
-            case REJECTED:
-                addExpression = booking.status.eq(BookingStatus.REJECTED);
-        }
-
-        if (addExpression != null) {
-            return sourceExpression.and(addExpression);
-        }
-        return sourceExpression;
     }
 }

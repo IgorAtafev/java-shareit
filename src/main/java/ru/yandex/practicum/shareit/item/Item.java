@@ -4,6 +4,8 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import ru.yandex.practicum.shareit.booking.Booking;
+import ru.yandex.practicum.shareit.request.ItemRequest;
 import ru.yandex.practicum.shareit.user.User;
 
 import javax.persistence.Column;
@@ -14,6 +16,8 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
+import javax.persistence.Transient;
+import java.util.List;
 
 @Entity
 @Table(name = "items")
@@ -38,4 +42,16 @@ public class Item {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     private User owner;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    private ItemRequest request;
+
+    @Transient
+    private Booking lastBooking;
+
+    @Transient
+    private Booking nextBooking;
+
+    @Transient
+    private List<Comment> comments;
 }

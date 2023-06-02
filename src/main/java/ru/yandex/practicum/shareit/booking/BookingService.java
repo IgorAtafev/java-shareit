@@ -1,5 +1,7 @@
 package ru.yandex.practicum.shareit.booking;
 
+import org.springframework.data.domain.Pageable;
+
 import java.util.List;
 import java.util.Map;
 
@@ -7,23 +9,27 @@ public interface BookingService {
 
     /**
      * Returns a list of user's bookings
+     * Results should be returned page by page
      * If the user is not found throws NotFoundException
      *
      * @param userId
      * @param state
+     * @param page
      * @return list of bookings
      */
-    Iterable<Booking> getBookingsByUserId(Long userId, String state);
+    List<Booking> getBookingsByUserId(Long userId, String state, Pageable page);
 
     /**
      * Returns a list of bookings for all the user's items
+     * Results should be returned page by page
      * If the user is not found throws NotFoundException
      *
      * @param userId
      * @param state
+     * @param page
      * @return list of bookings
      */
-    Iterable<Booking> getBookingsByItemOwnerId(Long userId, String state);
+    List<Booking> getBookingsByItemOwnerId(Long userId, String state, Pageable page);
 
     /**
      * Returns booking by id
@@ -63,7 +69,7 @@ public interface BookingService {
      * Returns a list of bookings for item IDs
      *
      * @param itemIds
-     * @return a list of bookings for item IDs
+     * @return list of bookings
      */
     Map<Long, List<Booking>> getBookingsByItemIds(List<Long> itemIds);
 
@@ -71,7 +77,7 @@ public interface BookingService {
      * Returns a list of bookings for item ID
      *
      * @param itemId
-     * @return a list of bookings for item ID
+     * @return list of bookings
      */
     List<Booking> getBookingsByItemId(Long itemId);
 
@@ -79,7 +85,7 @@ public interface BookingService {
      * Returns the last booking before the current time
      *
      * @param bookings
-     * @return the last booking
+     * @return last booking
      */
     Booking getLastBooking(List<Booking> bookings);
 
@@ -87,7 +93,7 @@ public interface BookingService {
      * Returns the first booking after the current time
      *
      * @param bookings
-     * @return the first booking
+     * @return first booking
      */
     Booking getNextBooking(List<Booking> bookings);
 }

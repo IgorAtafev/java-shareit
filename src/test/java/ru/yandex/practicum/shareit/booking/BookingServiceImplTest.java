@@ -1,33 +1,157 @@
 package ru.yandex.practicum.shareit.booking;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import ru.yandex.practicum.shareit.item.Item;
 import ru.yandex.practicum.shareit.user.User;
+import ru.yandex.practicum.shareit.user.UserRepository;
 import ru.yandex.practicum.shareit.validator.NotFoundException;
 import ru.yandex.practicum.shareit.validator.ValidationException;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class BookingServiceImplTest {
 
+    private LocalDateTime currentDateTime;
+
     @Mock
     private BookingRepository bookingRepository;
 
+    @Mock
+    private UserRepository userRepository;
+
     @InjectMocks
     private BookingServiceImpl bookingService;
+
+    @BeforeEach
+    void setUp() {
+        currentDateTime = LocalDateTime.of(2023, 5, 8, 12, 5);
+    }
+
+    @Test
+    void getBookingsByUserId_shouldReturnAListOfUserBookings() {
+        Long userId = 1L;
+        Integer size = 20;
+        Pageable page = PageRequest.of(0, size, Sort.by("start").descending());
+
+        when(userRepository.existsById(userId)).thenReturn(true);
+
+        assertThatExceptionOfType(ValidationException.class)
+                .isThrownBy(() -> bookingService.getBookingsByUserId(userId, "UNDEFINED", page));
+
+        verify(userRepository, times(1)).existsById(userId);
+    }
+
+    @Test
+    void getBookingsByUserId_shouldThrowAnException_ifUserDoesNotExist() {
+        Long userId = 1L;
+        Integer size = 20;
+        String state = "ALL";
+        Pageable page = PageRequest.of(0, size, Sort.by("start").descending());
+
+        when(userRepository.existsById(userId)).thenReturn(false);
+
+        assertThatExceptionOfType(NotFoundException.class)
+                .isThrownBy(() -> bookingService.getBookingsByUserId(userId, state, page));
+
+        verify(userRepository, times(1)).existsById(userId);
+        verifyNoMoreInteractions(userRepository);
+    }
+
+    @Test
+    void getBookingsByItemOwnerId_shouldReturnAListOfBookingsForAllTheUserItems() {
+        Long userId = 1L;
+        Integer size = 20;
+        Pageable page = PageRequest.of(0, size, Sort.by("start").descending());
+
+        when(userRepository.existsById(userId)).thenReturn(true);
+
+        assertThatExceptionOfType(ValidationException.class)
+                .isThrownBy(() -> bookingService.getBookingsByItemOwnerId(userId, "UNDEFINED", page));
+
+        verify(userRepository, times(1)).existsById(userId);
+    }
+
+    @Test
+    void getBookingsByItemOwnerId_shouldThrowAnException_ifUserDoesNotExist() {
+        Long userId = 1L;
+        Integer size = 20;
+        String state = "ALL";
+        Pageable page = PageRequest.of(0, size, Sort.by("start").descending());
+
+        when(userRepository.existsById(userId)).thenReturn(false);
+
+        assertThatExceptionOfType(NotFoundException.class)
+                .isThrownBy(() -> bookingService.getBookingsByItemOwnerId(userId, state, page));
+
+        verify(userRepository, times(1)).existsById(userId);
+        verifyNoMoreInteractions(userRepository);
+    }
+
+    @Test
+    void getBookingById_shouldReturnBookingById() {
+        Long userId = 1L;
+        Long bookingId = 2L;
+        Booking booking = initBooking();
+        booking.getBooker().setId(userId);
+
+        when(bookingRepository.findById(bookingId)).thenReturn(Optional.of(booking));
+
+        assertThat(bookingService.getBookingById(bookingId, userId)).isEqualTo(booking);
+
+        verify(bookingRepository, times(1)).findById(bookingId);
+    }
+
+    @Test
+    void getBookingById_shouldThrowAnException_ifBookingDoesNotExist() {
+        Long userId = 1L;
+        Long bookingId = 2L;
+
+        when(bookingRepository.findById(bookingId)).thenReturn(Optional.empty());
+
+        assertThatExceptionOfType(NotFoundException.class)
+                .isThrownBy(() -> bookingService.getBookingById(bookingId, userId));
+
+        verify(bookingRepository, times(1)).findById(bookingId);
+    }
+
+    @Test
+    void getBookingById_shouldThrowAnException_ifTheUserBookingDoesNotExist() {
+        Long userId = 1L;
+        Long bookingId = 2L;
+        Booking booking = initBooking();
+        booking.getBooker().setId(2L);
+        booking.getItem().getOwner().setId(3L);
+
+        when(bookingRepository.findById(bookingId)).thenReturn(Optional.of(booking));
+
+        assertThatExceptionOfType(NotFoundException.class)
+                .isThrownBy(() -> bookingService.getBookingById(bookingId, userId));
+
+        verify(bookingRepository, times(1)).findById(bookingId);
+    }
 
     @Test
     void createBooking_shouldCreateABooking() {
@@ -46,7 +170,7 @@ class BookingServiceImplTest {
     }
 
     @Test
-    void createBooking_shouldCreateABooking_ifTheBookerAndTheOwnerOfTheItemAreTheSame() {
+    void createBooking_shouldThrowAnException_ifTheBookerAndTheOwnerOfTheItemAreTheSame() {
         Long userId = 1L;
         Long itemId = 2L;
 
@@ -62,7 +186,7 @@ class BookingServiceImplTest {
     }
 
     @Test
-    void createBooking_shouldCreateABooking_ifTheBookingStartDateIsGreaterThanTheEndDate() {
+    void createBooking_shouldThrowAnException_ifTheBookingStartDateIsGreaterThanTheEndDate() {
         Long userId = 1L;
         Long itemId = 2L;
         LocalDateTime currentDateTime = LocalDateTime.now();
@@ -80,7 +204,7 @@ class BookingServiceImplTest {
     }
 
     @Test
-    void createBooking_shouldCreateABooking_ifTheBookingStartDateIsTheSameAsTheEndDate() {
+    void createBooking_shouldThrowAnException_ifTheBookingStartDateIsTheSameAsTheEndDate() {
         Long userId = 1L;
         Long itemId = 2L;
         LocalDateTime currentDateTime = LocalDateTime.now();
@@ -98,7 +222,7 @@ class BookingServiceImplTest {
     }
 
     @Test
-    void createBooking_shouldCreateABooking_ifTheItemIsNotAvailable() {
+    void createBooking_shouldThrowAnException_ifTheItemIsNotAvailable() {
         Long userId = 1L;
         Long itemId = 2L;
 
@@ -169,7 +293,7 @@ class BookingServiceImplTest {
         booking.getItem().getOwner().setId(userId);
         booking.setStatus(BookingStatus.WAITING);
 
-        when(bookingRepository.findById(bookingId)).thenThrow(NotFoundException.class);
+        when(bookingRepository.findById(bookingId)).thenReturn(Optional.empty());
 
         assertThatExceptionOfType(NotFoundException.class)
                 .isThrownBy(() -> bookingService.approveBookingById(bookingId, approved, userId));
@@ -221,8 +345,144 @@ class BookingServiceImplTest {
         verify(bookingRepository, never()).save(booking);
     }
 
-    private static Booking initBooking() {
-        LocalDateTime currentDateTime = LocalDateTime.now();
+    @Test
+    void getBookingsByItemIds_shouldReturnEmptyListOfBookings() {
+        Long itemId1 = 1L;
+        Long itemId2 = 2L;
+        List<Long> itemIds = List.of(itemId1, itemId2);
+        BookingStatus status = BookingStatus.APPROVED;
+        Sort sort = Sort.by("start").ascending();
+
+        when(bookingRepository.findByItemIdInAndStatus(itemIds, status, sort)).thenReturn(Collections.emptyList());
+
+        assertThat(bookingService.getBookingsByItemIds(itemIds)).isEqualTo(Map.of());
+
+        verify(bookingRepository, times(1)).findByItemIdInAndStatus(itemIds, status, sort);
+    }
+
+    @Test
+    void getBookingsByItemIds_shouldReturnAListOfBookingsForItemIds() {
+        Long itemId1 = 1L;
+        Long itemId2 = 2L;
+        List<Long> itemIds = List.of(itemId1, itemId2);
+        BookingStatus status = BookingStatus.APPROVED;
+        Sort sort = Sort.by("start").ascending();
+
+        Booking booking1 = initBooking();
+        Booking booking2 = initBooking();
+        Booking booking3 = initBooking();
+
+        booking1.getItem().setId(itemId1);
+        booking2.getItem().setId(itemId1);
+        booking3.getItem().setId(itemId2);
+
+        List<Booking> bookings = List.of(booking1, booking2, booking3);
+        Map<Long, List<Booking>> expected = Map.of(itemId1, List.of(booking1, booking2), itemId2, List.of(booking3));
+
+        when(bookingRepository.findByItemIdInAndStatus(itemIds, status, sort)).thenReturn(bookings);
+
+        assertThat(bookingService.getBookingsByItemIds(itemIds)).isEqualTo(expected);
+
+        verify(bookingRepository, times(1)).findByItemIdInAndStatus(itemIds, status, sort);
+    }
+
+    @Test
+    void getBookingsByItemId_shouldReturnEmptyListOfBookings() {
+        Long itemId = 1L;
+        BookingStatus status = BookingStatus.APPROVED;
+        Sort sort = Sort.by("start").ascending();
+
+        when(bookingRepository.findByItemIdAndStatus(itemId, status, sort)).thenReturn(Collections.emptyList());
+
+        assertThat(bookingService.getBookingsByItemId(itemId)).isEmpty();
+
+        verify(bookingRepository, times(1)).findByItemIdAndStatus(itemId, status, sort);
+    }
+
+    @Test
+    void getBookingsByItemId_shouldReturnAListOfBookingsForItemId() {
+        Long itemId = 1L;
+        BookingStatus status = BookingStatus.APPROVED;
+        Sort sort = Sort.by("start").ascending();
+
+        Booking booking1 = initBooking();
+        Booking booking2 = initBooking();
+
+        booking1.getItem().setId(itemId);
+        booking2.getItem().setId(itemId);
+
+        List<Booking> expected = List.of(booking1, booking2);
+
+        when(bookingRepository.findByItemIdAndStatus(itemId, status, sort)).thenReturn(expected);
+
+        assertThat(bookingService.getBookingsByItemId(itemId)).isEqualTo(expected);
+
+        verify(bookingRepository, times(1)).findByItemIdAndStatus(itemId, status, sort);
+    }
+
+    @Test
+    void getLastBooking_shouldReturnTheLastBookingBeforeTheCurrentTime() {
+        Booking booking1 = initBooking();
+        Booking booking2 = initBooking();
+
+        booking1.setStart(currentDateTime.minusHours(2));
+        booking1.setEnd(currentDateTime.minusHours(1));
+
+        booking2.setStart(currentDateTime.plusHours(1));
+        booking1.setEnd(currentDateTime.plusHours(2));
+
+        assertThat(bookingService.getLastBooking(null)).isNull();
+        assertThat(bookingService.getLastBooking(List.of())).isNull();
+
+        try (MockedStatic<LocalDateTime> mockDateTime = mockStatic(LocalDateTime.class)) {
+            mockDateTime.when(LocalDateTime::now).thenReturn(currentDateTime);
+            assertThat(bookingService.getLastBooking(List.of(booking1, booking2))).isEqualTo(booking1);
+        }
+
+        booking1.setEnd(currentDateTime.plusHours(1));
+
+        try (MockedStatic<LocalDateTime> mockDateTime = mockStatic(LocalDateTime.class)) {
+            mockDateTime.when(LocalDateTime::now).thenReturn(currentDateTime);
+            assertThat(bookingService.getLastBooking(List.of(booking1, booking2))).isEqualTo(booking1);
+        }
+
+        booking1.setStart(currentDateTime.plusHours(1));
+        booking1.setEnd(currentDateTime.plusHours(2));
+
+        try (MockedStatic<LocalDateTime> mockDateTime = mockStatic(LocalDateTime.class)) {
+            mockDateTime.when(LocalDateTime::now).thenReturn(currentDateTime);
+            assertThat(bookingService.getLastBooking(List.of(booking1, booking2))).isEqualTo(null);
+        }
+    }
+
+    @Test
+    void getNextBooking_shouldReturnTheFirstBookingAfterTheCurrentTime() {
+        Booking booking1 = initBooking();
+        Booking booking2 = initBooking();
+
+        booking1.setStart(currentDateTime.minusHours(2));
+        booking1.setEnd(currentDateTime.minusHours(1));
+
+        booking2.setStart(currentDateTime.plusHours(1));
+        booking2.setEnd(currentDateTime.plusHours(2));
+
+        assertThat(bookingService.getNextBooking(null)).isNull();
+        assertThat(bookingService.getNextBooking(List.of())).isNull();
+
+        try (MockedStatic<LocalDateTime> mockDateTime = mockStatic(LocalDateTime.class)) {
+            mockDateTime.when(LocalDateTime::now).thenReturn(currentDateTime);
+            assertThat(bookingService.getNextBooking(List.of(booking1, booking2))).isEqualTo(booking2);
+        }
+
+        booking2.setStart(currentDateTime.minusHours(2));
+
+        try (MockedStatic<LocalDateTime> mockDateTime = mockStatic(LocalDateTime.class)) {
+            mockDateTime.when(LocalDateTime::now).thenReturn(currentDateTime);
+            assertThat(bookingService.getNextBooking(List.of(booking1, booking2))).isEqualTo(null);
+        }
+    }
+
+    private Booking initBooking() {
         Booking booking = new Booking();
 
         booking.setStart(currentDateTime.plusHours(1));

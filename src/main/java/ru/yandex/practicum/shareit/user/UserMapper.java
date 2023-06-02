@@ -11,8 +11,6 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class UserMapper {
 
-    private final UserService userService;
-
     public UserDto toDto(User user) {
         UserDto userDto = new UserDto();
 
@@ -35,17 +33,6 @@ public class UserMapper {
         user.setId(userDto.getId());
         user.setEmail(userDto.getEmail());
         user.setName(userDto.getName());
-
-        if (userDto.getId() != null) {
-            User oldUser = userService.getUserById(userDto.getId());
-
-            if (userDto.getEmail() == null) {
-                user.setEmail(oldUser.getEmail());
-            }
-            if (userDto.getName() == null) {
-                user.setName(oldUser.getName());
-            }
-        }
 
         return user;
     }

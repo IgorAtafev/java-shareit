@@ -13,7 +13,7 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
      *
      * @param itemIds
      * @param sort
-     * @return list of bookings
+     * @return list of comments
      */
     Collection<Comment> findByItemIdIn(List<Long> itemIds, Sort sort);
 
