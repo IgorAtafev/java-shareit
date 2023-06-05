@@ -6,7 +6,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -19,18 +18,13 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import ru.yandex.practicum.shareit.item.ItemService;
 import ru.yandex.practicum.shareit.user.UserService;
-import ru.yandex.practicum.shareit.validator.ValidationOnCreate;
 
-import javax.validation.Valid;
-import javax.validation.constraints.Positive;
-import javax.validation.constraints.PositiveOrZero;
 import java.util.List;
 
 @RestController
 @RequestMapping("/bookings")
 @Slf4j
 @RequiredArgsConstructor
-@Validated
 public class BookingController {
 
     private static final String USER_ID_REQUEST_HEADER = "X-Sharer-User-Id";
@@ -44,8 +38,8 @@ public class BookingController {
     public List<BookingForResponseDto> getBookingsByUserId(
             @RequestHeader(USER_ID_REQUEST_HEADER) Long userId,
             @RequestParam(defaultValue = "ALL") String state,
-            @RequestParam(defaultValue = "0") @PositiveOrZero Integer from,
-            @RequestParam(defaultValue = "20") @Positive Integer size
+            @RequestParam(defaultValue = "0") Integer from,
+            @RequestParam(defaultValue = "20") Integer size
     ) {
         Pageable page = PageRequest.of(from / size, size, Sort.by("start").descending());
         return bookingMapper.toDtos(bookingService.getBookingsByUserId(userId, state, page));
@@ -55,8 +49,8 @@ public class BookingController {
     public List<BookingForResponseDto> getBookingsByItemOwnerId(
             @RequestHeader(USER_ID_REQUEST_HEADER) Long userId,
             @RequestParam(defaultValue = "ALL") String state,
-            @RequestParam(defaultValue = "0") @PositiveOrZero Integer from,
-            @RequestParam(defaultValue = "20") @Positive Integer size
+            @RequestParam(defaultValue = "0") Integer from,
+            @RequestParam(defaultValue = "20") Integer size
     ) {
         Pageable page = PageRequest.of(from / size, size, Sort.by("start").descending());
         return bookingMapper.toDtos(bookingService.getBookingsByItemOwnerId(userId, state, page));
@@ -71,11 +65,10 @@ public class BookingController {
     }
 
     @PostMapping
-    @Validated(ValidationOnCreate.class)
     @ResponseStatus(HttpStatus.CREATED)
     public BookingForResponseDto createBooking(
             @RequestHeader(USER_ID_REQUEST_HEADER) Long userId,
-            @RequestBody @Valid BookingForCreateDto bookingDto
+            @RequestBody BookingForCreateDto bookingDto
     ) {
         log.info("Request received POST /bookings: '{}', userId: {}", bookingDto, userId);
         return bookingMapper.toDto(bookingService.createBooking(toBooking(bookingDto, userId)));

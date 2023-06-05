@@ -4,9 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -16,8 +13,6 @@ import ru.yandex.practicum.shareit.validator.ErrorHandler;
 import ru.yandex.practicum.shareit.validator.NotFoundException;
 
 import java.util.List;
-import java.util.function.Consumer;
-import java.util.stream.Stream;
 
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
@@ -144,15 +139,6 @@ class UserControllerTest {
         verify(userMapper, times(1)).toDto(user);
     }
 
-    @ParameterizedTest
-    @MethodSource("provideInvalidUsers")
-    void createUser_shouldResponseWithBadRequest_ifTheUserIsInvalid(UserDto userDto) throws Exception {
-        String json = objectMapper.writeValueAsString(userDto);
-
-        mockMvc.perform(post("/users").contentType("application/json").content(json))
-                .andExpect(status().isBadRequest());
-    }
-
     @Test
     void updateUserById_shouldResponseWithOk() throws Exception {
         Long userId = 1L;
@@ -204,19 +190,6 @@ class UserControllerTest {
         verify(userMapper, never()).toDto(user);
     }
 
-    @ParameterizedTest
-    @MethodSource("provideInvalidUsers")
-    void updateUserById_shouldResponseWithBadRequest_ifTheUserIsInvalid(UserDto userDto) throws Exception {
-        Long userId = 1L;
-
-        userDto.setId(userId);
-
-        String json = objectMapper.writeValueAsString(userDto);
-
-        mockMvc.perform(patch("/users/{id}", userId).contentType("application/json").content(json))
-                .andExpect(status().isBadRequest());
-    }
-
     @Test
     void removeUserById_shouldResponseWithOk() throws Exception {
         Long userId = 1L;
@@ -239,29 +212,12 @@ class UserControllerTest {
         verify(userService, times(1)).removeUserById(userId);
     }
 
-    private static Stream<Arguments> provideInvalidUsers() {
-        return Stream.of(
-                Arguments.of(initUserDto(dto -> dto.setEmail("mail.ru"))),
-                Arguments.of(initUserDto(dto -> dto.setName(""))),
-                Arguments.of(initUserDto(dto -> dto.setName("  "))),
-                Arguments.of(initUserDto(dto -> dto.setName("us er"))),
-                Arguments.of(initUserDto(dto -> dto.setName("u"))),
-                Arguments.of(initUserDto(dto -> dto.setName("userr".repeat(10) + "r")))
-        );
-    }
-
     private static UserDto initUserDto() {
         UserDto userDto = new UserDto();
 
         userDto.setEmail("user@user.com");
         userDto.setName("user");
 
-        return userDto;
-    }
-
-    private static UserDto initUserDto(Consumer<UserDto> consumer) {
-        UserDto userDto = initUserDto();
-        consumer.accept(userDto);
         return userDto;
     }
 

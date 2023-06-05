@@ -6,7 +6,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -19,11 +18,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import ru.yandex.practicum.shareit.request.ItemRequestService;
 import ru.yandex.practicum.shareit.user.UserService;
-import ru.yandex.practicum.shareit.validator.ValidationOnCreate;
 
-import javax.validation.Valid;
-import javax.validation.constraints.Positive;
-import javax.validation.constraints.PositiveOrZero;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -32,7 +27,6 @@ import java.util.Objects;
 @RequestMapping("/items")
 @Slf4j
 @RequiredArgsConstructor
-@Validated
 public class ItemController {
 
     private static final String USER_ID_REQUEST_HEADER = "X-Sharer-User-Id";
@@ -46,8 +40,8 @@ public class ItemController {
     @GetMapping
     public List<ItemDto> getItemsByUserId(
             @RequestHeader(USER_ID_REQUEST_HEADER) Long userId,
-            @RequestParam(defaultValue = "0") @PositiveOrZero Integer from,
-            @RequestParam(defaultValue = "20") @Positive Integer size
+            @RequestParam(defaultValue = "0") Integer from,
+            @RequestParam(defaultValue = "20") Integer size
     ) {
         Pageable page = PageRequest.of(from / size, size, Sort.by("id").ascending());
 
@@ -70,11 +64,10 @@ public class ItemController {
     }
 
     @PostMapping
-    @Validated(ValidationOnCreate.class)
     @ResponseStatus(HttpStatus.CREATED)
     public ItemDto createItem(
             @RequestHeader(USER_ID_REQUEST_HEADER) Long userId,
-            @RequestBody @Valid ItemDto itemDto
+            @RequestBody ItemDto itemDto
     ) {
         log.info("Request received POST /items: '{}', userId: {}", itemDto, userId);
         return itemMapper.toDto(itemService.createItem(toItem(itemDto, userId)));
@@ -84,7 +77,7 @@ public class ItemController {
     public ItemDto updateItemById(
             @RequestHeader(USER_ID_REQUEST_HEADER) Long userId,
             @PathVariable Long id,
-            @RequestBody @Valid ItemDto itemDto
+            @RequestBody ItemDto itemDto
     ) {
         log.info("Request received PATCH /items/{}: '{}', userId: {}", id, itemDto, userId);
         itemDto.setId(id);
@@ -94,8 +87,8 @@ public class ItemController {
     @GetMapping("/search")
     public List<ItemDto> searchItems(
             @RequestParam String text,
-            @RequestParam(defaultValue = "0") @PositiveOrZero Integer from,
-            @RequestParam(defaultValue = "20") @Positive Integer size
+            @RequestParam(defaultValue = "0") Integer from,
+            @RequestParam(defaultValue = "20") Integer size
     ) {
         if (text.isBlank()) {
             return Collections.emptyList();
@@ -109,7 +102,7 @@ public class ItemController {
     public CommentForResponseDto createComment(
             @RequestHeader(USER_ID_REQUEST_HEADER) Long userId,
             @PathVariable Long id,
-            @RequestBody @Valid CommentForCreateDto commentDto
+            @RequestBody CommentForCreateDto commentDto
     ) {
         log.info("Request received POST /items/{}/comment: '{}', userId: {}", id, commentDto, userId);
         return commentMapper.toDto(itemService.createComment(toComment(commentDto, id, userId)));

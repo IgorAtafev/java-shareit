@@ -4,9 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -25,8 +22,6 @@ import ru.yandex.practicum.shareit.validator.ValidationException;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.function.Consumer;
-import java.util.stream.Stream;
 
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -238,18 +233,6 @@ class ItemControllerTest {
         verify(itemMapper, never()).toDto(item);
     }
 
-    @ParameterizedTest
-    @MethodSource("provideInvalidItems")
-    void createItem_shouldResponseWithBadRequest_ifTheItemIsInvalid(ItemDto itemDto) throws Exception {
-        Long userId = 1L;
-
-        String json = objectMapper.writeValueAsString(itemDto);
-
-        mockMvc.perform(post("/items").header("X-Sharer-User-Id", userId)
-                        .contentType("application/json").content(json))
-                .andExpect(status().isBadRequest());
-    }
-
     @Test
     void updateItemById_shouldResponseWithOk() throws Exception {
         Long userId = 1L;
@@ -334,21 +317,6 @@ class ItemControllerTest {
         verify(itemService, times(1)).updateItem(item);
         verify(itemRequestService, times(1)).getItemRequestById(requestId, userId);
         verify(itemMapper, never()).toDto(item);
-    }
-
-    @ParameterizedTest
-    @MethodSource("provideInvalidItems")
-    void updateItemById_shouldResponseWithBadRequest_ifTheItemIsInvalid(ItemDto itemDto) throws Exception {
-        Long userId = 1L;
-        Long itemId = 2L;
-
-        itemDto.setId(itemId);
-
-        String json = objectMapper.writeValueAsString(itemDto);
-
-        mockMvc.perform(patch("/items/{id}", itemId).header("X-Sharer-User-Id", userId)
-                        .contentType("application/json").content(json))
-                .andExpect(status().isBadRequest());
     }
 
     @Test
@@ -485,41 +453,6 @@ class ItemControllerTest {
         verify(commentMapper, never()).toDto(comment);
     }
 
-    @ParameterizedTest
-    @MethodSource("provideInvalidComments")
-    void createComment_shouldResponseWithBadRequest_ifTheCommentIsInvalid(CommentForCreateDto commentDto)
-            throws Exception {
-        Long userId = 1L;
-        Long itemId = 2L;
-
-        String json = objectMapper.writeValueAsString(commentDto);
-
-        mockMvc.perform(post("/items/{id}/comment", itemId).header("X-Sharer-User-Id", userId)
-                        .contentType("application/json").content(json))
-                .andExpect(status().isBadRequest());
-    }
-
-    private static Stream<Arguments> provideInvalidItems() {
-        return Stream.of(
-                Arguments.of(initItemDto(dto -> dto.setName(""))),
-                Arguments.of(initItemDto(dto -> dto.setName("Д"))),
-                Arguments.of(initItemDto(dto -> dto.setName("Дрель".repeat(20) + "ь"))),
-                Arguments.of(initItemDto(dto -> dto.setDescription(""))),
-                Arguments.of(initItemDto(dto -> dto.setDescription("Д"))),
-                Arguments.of(initItemDto(dto -> dto.setDescription("Дрель".repeat(40) + "ь")))
-        );
-    }
-
-    private static Stream<Arguments> provideInvalidComments() {
-        return Stream.of(
-                Arguments.of(initCommentForCreateDto(dto -> dto.setText(null))),
-                Arguments.of(initCommentForCreateDto(dto -> dto.setText(""))),
-                Arguments.of(initCommentForCreateDto(dto -> dto.setText("     "))),
-                Arguments.of(initCommentForCreateDto(dto -> dto.setText("К"))),
-                Arguments.of(initCommentForCreateDto(dto -> dto.setText("Комме".repeat(200) + "н")))
-        );
-    }
-
     private static ItemDto initItemDto() {
         ItemDto itemDto = new ItemDto();
 
@@ -530,22 +463,10 @@ class ItemControllerTest {
         return itemDto;
     }
 
-    private static ItemDto initItemDto(Consumer<ItemDto> consumer) {
-        ItemDto itemDto = initItemDto();
-        consumer.accept(itemDto);
-        return itemDto;
-    }
-
     private static CommentForCreateDto initCommentForCreateDto() {
         CommentForCreateDto commentDto = new CommentForCreateDto();
         commentDto.setText("Комментарий пользователя");
         return commentDto;
-    }
-
-    private static CommentForCreateDto initCommentForCreateDto(Consumer<CommentForCreateDto> consumer) {
-        CommentForCreateDto commentForCreateDto = initCommentForCreateDto();
-        consumer.accept(commentForCreateDto);
-        return commentForCreateDto;
     }
 
     private User initUser() {

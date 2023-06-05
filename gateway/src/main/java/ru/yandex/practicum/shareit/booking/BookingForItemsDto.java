@@ -11,11 +11,13 @@ import java.time.LocalDateTime;
 @Setter
 @EqualsAndHashCode
 @ToString
-public class BookingForCreateDto {
+public class BookingForItemsDto {
+
+    private Long id;
 
     private LocalDateTime start;
 
     private LocalDateTime end;
 
-    private Long itemId;
+    private Long bookerId;
 }

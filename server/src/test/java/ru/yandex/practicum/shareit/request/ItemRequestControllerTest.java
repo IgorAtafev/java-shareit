@@ -5,9 +5,6 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -22,8 +19,6 @@ import ru.yandex.practicum.shareit.validator.ErrorHandler;
 import ru.yandex.practicum.shareit.validator.NotFoundException;
 
 import java.util.List;
-import java.util.function.Consumer;
-import java.util.stream.Stream;
 
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -234,32 +229,6 @@ class ItemRequestControllerTest {
         verify(itemRequestMapper, times(1)).toItemRequest(itemRequestDto);
         verify(itemRequestService, times(1)).createRequest(itemRequest);
         verify(itemRequestMapper, times(1)).toDto(itemRequest);
-    }
-
-    @ParameterizedTest
-    @MethodSource("provideInvalidItemRequests")
-    void createRequest_shouldResponseWithBadRequest_ifTheRequestIsInvalid(ItemRequestDto requestDto) throws Exception {
-        Long userId = 1L;
-
-        String json = objectMapper.writeValueAsString(requestDto);
-
-        mockMvc.perform(post("/requests").header("X-Sharer-User-Id", userId)
-                        .contentType("application/json").content(json))
-                .andExpect(status().isBadRequest());
-    }
-
-    private static Stream<Arguments> provideInvalidItemRequests() {
-        return Stream.of(
-                Arguments.of(initItemRequestDto(dto -> dto.setDescription(""))),
-                Arguments.of(initItemRequestDto(dto -> dto.setDescription("Д"))),
-                Arguments.of(initItemRequestDto(dto -> dto.setDescription("Дрель".repeat(40) + "ь")))
-        );
-    }
-
-    private static ItemRequestDto initItemRequestDto(Consumer<ItemRequestDto> consumer) {
-        ItemRequestDto itemRequestDto = initItemRequestDto();
-        consumer.accept(itemRequestDto);
-        return itemRequestDto;
     }
 
     private static ItemRequestDto initItemRequestDto() {

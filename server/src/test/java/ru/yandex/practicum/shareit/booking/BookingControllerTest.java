@@ -5,9 +5,6 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -25,8 +22,6 @@ import ru.yandex.practicum.shareit.validator.NotFoundException;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.function.Consumer;
-import java.util.stream.Stream;
 
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -307,19 +302,6 @@ class BookingControllerTest {
         verify(bookingMapper, never()).toDto(booking);
     }
 
-    @ParameterizedTest
-    @MethodSource("provideInvalidBookings")
-    void createBooking_shouldResponseWithBadRequest_ifTheBookingIsInvalid(BookingForCreateDto bookingDto)
-            throws Exception {
-        Long userId = 1L;
-
-        String json = objectMapper.writeValueAsString(bookingDto);
-
-        mockMvc.perform(post("/bookings").header("X-Sharer-User-Id", userId)
-                        .contentType("application/json").content(json))
-                .andExpect(status().isBadRequest());
-    }
-
     @Test
     void approveBookingById_shouldResponseWithOk() throws Exception {
         Long userId = 1L;
@@ -358,24 +340,6 @@ class BookingControllerTest {
                 .andExpect(status().isNotFound());
 
         verify(bookingService, times(1)).approveBookingById(bookingId, approved, userId);
-    }
-
-    private static Stream<Arguments> provideInvalidBookings() {
-        LocalDateTime pastDateTime = LocalDateTime.now().minusHours(1);
-
-        return Stream.of(
-                Arguments.of(initBookingForCreateDto(dto -> dto.setStart(null))),
-                Arguments.of(initBookingForCreateDto(dto -> dto.setStart(pastDateTime))),
-                Arguments.of(initBookingForCreateDto(dto -> dto.setEnd(null))),
-                Arguments.of(initBookingForCreateDto(dto -> dto.setEnd(pastDateTime))),
-                Arguments.of(initBookingForCreateDto(dto -> dto.setItemId(null)))
-        );
-    }
-
-    private static BookingForCreateDto initBookingForCreateDto(Consumer<BookingForCreateDto> consumer) {
-        BookingForCreateDto bookingDto = initBookingForCreateDto();
-        consumer.accept(bookingDto);
-        return bookingDto;
     }
 
     private static User initUser() {
