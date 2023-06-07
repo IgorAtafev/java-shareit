@@ -2,24 +2,18 @@ package ru.yandex.practicum.shareit.validator;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
 import javax.servlet.http.HttpServletResponse;
-import javax.validation.ConstraintViolationException;
 import java.io.IOException;
 
 @ControllerAdvice
 @Slf4j
 public class ErrorHandler {
 
-    @ExceptionHandler({
-            ValidationException.class,
-            MethodArgumentNotValidException.class,
-            ConstraintViolationException.class
-    })
-    public void handleValidationException(final Exception e, final HttpServletResponse response)
+    @ExceptionHandler
+    public void handleValidationException(final ValidationException e, final HttpServletResponse response)
             throws IOException {
         log.error(e.getMessage(), e);
         sendError(response, HttpStatus.BAD_REQUEST.value(), e.getMessage());

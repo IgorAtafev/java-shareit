@@ -43,7 +43,7 @@ public class Item {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     private User owner;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @ManyToOne(fetch = FetchType.LAZY)
     private ItemRequest request;
 
     @Transient

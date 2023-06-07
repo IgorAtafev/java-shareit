@@ -19,7 +19,6 @@ import org.springframework.web.bind.annotation.RestController;
 import ru.yandex.practicum.shareit.request.ItemRequestService;
 import ru.yandex.practicum.shareit.user.UserService;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
@@ -90,10 +89,6 @@ public class ItemController {
             @RequestParam(defaultValue = "0") Integer from,
             @RequestParam(defaultValue = "20") Integer size
     ) {
-        if (text.isBlank()) {
-            return Collections.emptyList();
-        }
-
         Pageable page = PageRequest.of(from / size, size);
         return itemMapper.toDtos(itemService.searchItems(text, page));
     }

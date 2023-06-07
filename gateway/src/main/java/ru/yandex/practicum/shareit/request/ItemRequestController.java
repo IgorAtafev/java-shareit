@@ -16,7 +16,6 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import ru.yandex.practicum.shareit.validator.ValidationOnCreate;
 
-import javax.validation.Valid;
 import javax.validation.constraints.Positive;
 import javax.validation.constraints.PositiveOrZero;
 import java.util.Map;
@@ -58,11 +57,10 @@ public class ItemRequestController {
     }
 
     @PostMapping
-    @Validated(ValidationOnCreate.class)
     @ResponseStatus(HttpStatus.CREATED)
     public ResponseEntity<Object> createRequest(
             @RequestHeader(USER_ID_REQUEST_HEADER) Long userId,
-            @RequestBody @Valid ItemRequestDto itemRequestDto
+            @RequestBody @Validated(ValidationOnCreate.class) ItemRequestDto itemRequestDto
     ) {
         log.info("Request received POST /requests: '{}', userId: {}", itemRequestDto, userId);
         return client.createRequest(userId, itemRequestDto);

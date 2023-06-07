@@ -16,10 +16,11 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import ru.yandex.practicum.shareit.validator.ValidationOnCreate;
+import ru.yandex.practicum.shareit.validator.ValidationOnUpdate;
 
-import javax.validation.Valid;
 import javax.validation.constraints.Positive;
 import javax.validation.constraints.PositiveOrZero;
+import java.util.Collections;
 import java.util.Map;
 
 @RestController
@@ -54,11 +55,10 @@ public class ItemController {
     }
 
     @PostMapping
-    @Validated(ValidationOnCreate.class)
     @ResponseStatus(HttpStatus.CREATED)
     public ResponseEntity<Object> createItem(
             @RequestHeader(USER_ID_REQUEST_HEADER) Long userId,
-            @RequestBody @Valid ItemDto itemDto
+            @RequestBody @Validated(ValidationOnCreate.class) ItemDto itemDto
     ) {
         log.info("Request received POST /items: '{}', userId: {}", itemDto, userId);
         return client.createItem(userId, itemDto);
@@ -68,7 +68,7 @@ public class ItemController {
     public ResponseEntity<Object> updateItemById(
             @RequestHeader(USER_ID_REQUEST_HEADER) Long userId,
             @PathVariable Long id,
-            @RequestBody @Valid ItemDto itemDto
+            @RequestBody @Validated(ValidationOnUpdate.class) ItemDto itemDto
     ) {
         log.info("Request received PATCH /items/{}: '{}', userId: {}", id, itemDto, userId);
         return client.updateItemById(userId, id, itemDto);
@@ -80,6 +80,10 @@ public class ItemController {
             @RequestParam(defaultValue = "0") @PositiveOrZero Integer from,
             @RequestParam(defaultValue = "20") @Positive Integer size
     ) {
+        if (text.isBlank()) {
+            return new ResponseEntity<>(Collections.emptyList(), HttpStatus.OK);
+        }
+
         Map<String, Object> parameters = Map.of(
                 "text", text,
                 "from", from,
@@ -92,7 +96,7 @@ public class ItemController {
     public ResponseEntity<Object> createComment(
             @RequestHeader(USER_ID_REQUEST_HEADER) Long userId,
             @PathVariable Long id,
-            @RequestBody @Valid CommentForCreateDto commentDto
+            @RequestBody @Validated(ValidationOnCreate.class) CommentForCreateDto commentDto
     ) {
         log.info("Request received POST /items/{}/comment: '{}', userId: {}", id, commentDto, userId);
         return client.createComment(userId, id, commentDto);

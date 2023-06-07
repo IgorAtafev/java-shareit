@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
-import ru.yandex.practicum.shareit.validator.ValidationOnCreate;
 
 import javax.validation.Valid;
 import javax.validation.constraints.Positive;
@@ -71,7 +70,6 @@ public class BookingController {
     }
 
     @PostMapping
-    @Validated(ValidationOnCreate.class)
     @ResponseStatus(HttpStatus.CREATED)
     public ResponseEntity<Object> createBooking(
             @RequestHeader(USER_ID_REQUEST_HEADER) Long userId,

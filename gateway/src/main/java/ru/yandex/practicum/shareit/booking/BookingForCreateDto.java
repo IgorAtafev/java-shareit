@@ -4,8 +4,10 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import ru.yandex.practicum.shareit.validator.StartDateBeforeEndDate;
 
 import javax.validation.constraints.Future;
+import javax.validation.constraints.FutureOrPresent;
 import javax.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 
@@ -13,13 +15,12 @@ import java.time.LocalDateTime;
 @Setter
 @EqualsAndHashCode
 @ToString
+@StartDateBeforeEndDate
 public class BookingForCreateDto {
 
-    @NotNull(message = "Start date cannot be null")
-    @Future
+    @FutureOrPresent
     private LocalDateTime start;
 
-    @NotNull(message = "End date cannot be null")
     @Future
     private LocalDateTime end;
 

@@ -6,6 +6,7 @@ import lombok.Setter;
 import lombok.ToString;
 import ru.yandex.practicum.shareit.booking.BookingForItemsDto;
 import ru.yandex.practicum.shareit.validator.ValidationOnCreate;
+import ru.yandex.practicum.shareit.validator.ValidationOnUpdate;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
@@ -23,11 +24,17 @@ public class ItemDto {
     private Long id;
 
     @NotBlank(groups = ValidationOnCreate.class, message = "Name cannot be empty")
-    @Size(min = 2, max = 100, message = "Name must contain at least 2 and no more than 100 characters")
+    @Size(
+            groups = {ValidationOnCreate.class, ValidationOnUpdate.class}, min = 2, max = 100,
+            message = "Name must contain at least 2 and no more than 100 characters"
+    )
     private String name;
 
     @NotBlank(groups = ValidationOnCreate.class, message = "Description cannot be empty")
-    @Size(min = 2, max = 200, message = "Description must contain at least 2 and no more than 200 characters")
+    @Size(
+            groups = {ValidationOnCreate.class, ValidationOnUpdate.class}, min = 2, max = 200,
+            message = "Description must contain at least 2 and no more than 200 characters"
+    )
     private String description;
 
     @NotNull(groups = ValidationOnCreate.class, message = "Available cannot be empty")

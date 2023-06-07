@@ -320,19 +320,6 @@ class ItemControllerTest {
     }
 
     @Test
-    void searchItems_shouldReturnEmptyListOfItems_ifSearchTextIsEmpty() throws Exception {
-        String text = "";
-        Integer size = 20;
-        Pageable page = PageRequest.of(0, size);
-
-        mockMvc.perform(get("/items/search?text={text}", text))
-                .andExpect(status().isOk())
-                .andExpect(content().json("[]"));
-
-        verify(itemService, never()).searchItems(text, page);
-    }
-
-    @Test
     void searchItems_shouldReturnEmptyListOfItems() throws Exception {
         String text = "аккумулятор";
         Integer size = 20;

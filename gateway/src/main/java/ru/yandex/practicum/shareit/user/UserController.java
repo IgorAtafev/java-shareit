@@ -15,14 +15,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import ru.yandex.practicum.shareit.validator.ValidationOnCreate;
-
-import javax.validation.Valid;
+import ru.yandex.practicum.shareit.validator.ValidationOnUpdate;
 
 @RestController
 @RequestMapping("/users")
 @Slf4j
 @RequiredArgsConstructor
-@Validated
 public class UserController {
 
     private final UserClient client;
@@ -38,15 +36,17 @@ public class UserController {
     }
 
     @PostMapping
-    @Validated(ValidationOnCreate.class)
     @ResponseStatus(HttpStatus.CREATED)
-    public ResponseEntity<Object> createUser(@RequestBody @Valid UserDto userDto) {
+    public ResponseEntity<Object> createUser(@RequestBody @Validated(ValidationOnCreate.class) UserDto userDto) {
         log.info("Request received POST /users: '{}'", userDto);
         return client.createUser(userDto);
     }
 
     @PatchMapping("/{id}")
-    public ResponseEntity<Object> updateUserById(@PathVariable Long id, @RequestBody @Valid UserDto userDto) {
+    public ResponseEntity<Object> updateUserById(
+            @PathVariable Long id,
+            @RequestBody @Validated(ValidationOnUpdate.class) UserDto userDto
+    ) {
         log.info("Request received PATCH /users/{}: '{}'", id, userDto);
         return client.updateUserById(id, userDto);
     }
