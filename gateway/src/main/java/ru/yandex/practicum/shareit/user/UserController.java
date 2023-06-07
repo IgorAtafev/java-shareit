@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -13,11 +14,10 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
 import ru.yandex.practicum.shareit.validator.ValidationOnCreate;
 import ru.yandex.practicum.shareit.validator.ValidationOnUpdate;
 
-@RestController
+@Controller
 @RequestMapping("/users")
 @Slf4j
 @RequiredArgsConstructor
@@ -52,8 +52,8 @@ public class UserController {
     }
 
     @DeleteMapping("/{id}")
-    public void removeUserById(@PathVariable Long id) {
+    public ResponseEntity<Object> removeUserById(@PathVariable Long id) {
         log.info("Request received DELETE /users/{}", id);
-        client.removeUserById(id);
+        return client.removeUserById(id);
     }
 }

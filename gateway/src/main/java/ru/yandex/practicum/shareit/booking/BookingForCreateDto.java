@@ -6,7 +6,6 @@ import lombok.Setter;
 import lombok.ToString;
 import ru.yandex.practicum.shareit.validator.StartDateBeforeEndDate;
 
-import javax.validation.constraints.Future;
 import javax.validation.constraints.FutureOrPresent;
 import javax.validation.constraints.NotNull;
 import java.time.LocalDateTime;
@@ -21,7 +20,6 @@ public class BookingForCreateDto {
     @FutureOrPresent
     private LocalDateTime start;
 
-    @Future
     private LocalDateTime end;
 
     @NotNull(message = "ItemId must be null")

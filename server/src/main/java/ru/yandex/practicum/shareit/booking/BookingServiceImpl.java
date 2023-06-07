@@ -78,10 +78,6 @@ public class BookingServiceImpl implements BookingService {
             throw new NotFoundException("The owner of the item and the booker are the same");
         }
 
-        if (booking.getStart().isAfter(booking.getEnd()) || booking.getStart().isEqual(booking.getEnd())) {
-            throw new ValidationException("The start of the booking must be before the end of the booking");
-        }
-
         if (Objects.equals(Boolean.FALSE, booking.getItem().getAvailable())) {
             throw new ValidationException(
                     String.format("Item with id %d not available for booking", booking.getItem().getId())

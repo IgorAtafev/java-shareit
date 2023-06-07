@@ -186,42 +186,6 @@ class BookingServiceImplTest {
     }
 
     @Test
-    void createBooking_shouldThrowAnException_ifTheBookingStartDateIsGreaterThanTheEndDate() {
-        Long userId = 1L;
-        Long itemId = 2L;
-        LocalDateTime currentDateTime = LocalDateTime.now();
-
-        Booking booking = initBooking();
-        booking.setStart(currentDateTime.plusHours(2));
-        booking.setEnd(currentDateTime.plusHours(1));
-        booking.getItem().setId(itemId);
-        booking.getBooker().setId(userId);
-
-        assertThatExceptionOfType(ValidationException.class)
-                .isThrownBy(() -> bookingService.createBooking(booking));
-
-        verify(bookingRepository, never()).save(booking);
-    }
-
-    @Test
-    void createBooking_shouldThrowAnException_ifTheBookingStartDateIsTheSameAsTheEndDate() {
-        Long userId = 1L;
-        Long itemId = 2L;
-        LocalDateTime currentDateTime = LocalDateTime.now();
-
-        Booking booking = initBooking();
-        booking.setStart(currentDateTime.plusHours(1));
-        booking.setEnd(currentDateTime.plusHours(1));
-        booking.getItem().setId(itemId);
-        booking.getBooker().setId(userId);
-
-        assertThatExceptionOfType(ValidationException.class)
-                .isThrownBy(() -> bookingService.createBooking(booking));
-
-        verify(bookingRepository, never()).save(booking);
-    }
-
-    @Test
     void createBooking_shouldThrowAnException_ifTheItemIsNotAvailable() {
         Long userId = 1L;
         Long itemId = 2L;
